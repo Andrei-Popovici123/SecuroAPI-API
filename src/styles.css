@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@theme {
+  /* Core Colors */
+  --color-brand-primary: #1A2332;
+  --color-brand-secondary: #DC2626;
+
+  /* UI Colors */
+  --color-nav-bg: #111827;
+  --color-main-bg: #0B0F14;
+  --color-main-text: #E2E8F0;
+
+}
+
+@layer base {
+  body {
+    @apply bg-main-bg text-main-text antialiased;
+  }
+}
