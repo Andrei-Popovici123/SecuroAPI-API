@@ -1,13 +1,22 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
-
-namespace SecuroAPI_API.Controllers;
-
-public class APIRegistryController : Controller
+namespace SecuroAPI_API.Controllers
 {
-    // GET
-    public IActionResult Index()
-    { 
-        return View();
+    [Route("api/[controller]")]
+    [ApiController]
+    public class APIRegistryController : ControllerBase
+    {
+        [HttpGet]
+        public IEnumerable<string> Get()
+        {
+            return new string[] { "value1", "value2" };
+        }
+        
+        [HttpGet("{id}")]
+        public string GetByID(int id)
+        {
+            return "value";
+        }
     }
 }
