@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecuroAPI-API", "SecuroAPI-API\SecuroAPI-API.csproj", "{1626509B-49FB-448E-9B34-F451E0D09F44}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1626509B-49FB-448E-9B34-F451E0D09F44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1626509B-49FB-448E-9B34-F451E0D09F44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1626509B-49FB-448E-9B34-F451E0D09F44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1626509B-49FB-448E-9B34-F451E0D09F44}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
