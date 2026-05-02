@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using SecuroAPI.DataAccess;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +9,9 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
+
+var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
+builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 
