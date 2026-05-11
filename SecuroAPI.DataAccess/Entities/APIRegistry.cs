@@ -1,11 +1,15 @@
-﻿namespace SecuroAPI.DataAccess.Entity;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SecuroAPI.DataAccess.Entity;
 
 public class APIRegistry
 {
     public Guid APIID { get; set; }
     public Guid UserID { get; set; }
     
+    [Url]
     public string TargetURL { get; set; }
+    
     public string AuthType { get; set; }
 
     public string Status { get; set; }

@@ -8,9 +8,10 @@ namespace SecuroAPI_API.Controllers
     public class APIRegistryController : ControllerBase
     {
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IActionResult Get()
         {
-            return new string[] { "value1", "value2" };
+            IEnumerable<string> list = ["value1","value2"];
+             return Ok(list);
         }
         
         [HttpGet("{id}")]
