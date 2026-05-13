@@ -76,7 +76,7 @@ public class APIRegistryService : IAPIRegistryService
         };
     }
 
-    public async Task<APIRegistryDTO> CreateAPIRegistruAsync(CreateAPIRegistryDTO registryDto)
+    public async Task<APIRegistryDTO> CreateAPIRegistryAsync(CreateAPIRegistryDTO registryDto)
     {
         var registry = new APIRegistry
         {

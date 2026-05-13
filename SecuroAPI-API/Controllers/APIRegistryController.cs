@@ -9,13 +9,16 @@ namespace SecuroAPI_API.Controllers
     [ApiController]
     public class APIRegistryController : ControllerBase
     {
-        private IAPIRegistryService _apiRegistryService;
+        private readonly IAPIRegistryService _apiRegistryService;
 
         public APIRegistryController(IAPIRegistryService apiRegistryService)
         {
             _apiRegistryService = apiRegistryService;
         }
-
+/// <summary>
+/// Crud Operations for APIRegistry
+/// </summary>
+/// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -35,8 +38,8 @@ namespace SecuroAPI_API.Controllers
         public async Task<IActionResult> Post([FromBody] CreateAPIRegistryDTO registryDto)
         {
             if (registryDto == null) return BadRequest("API Registry data is null");
-            var newAPIRegistry = await _apiRegistryService.CreateAPIRegistruAsync(registryDto);
-            return Ok(newAPIRegistry);
+            var newAPIRegistry = await _apiRegistryService.CreateAPIRegistryAsync(registryDto);
+            return CreatedAtAction(nameof(GetByID), new { id = newAPIRegistry.APIID }, newAPIRegistry);;
 
         }
 
