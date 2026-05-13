@@ -25,7 +25,7 @@ public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : clas
         }
     }
 
-    public async Task<TEntity?> GetByIdAsync(int id)
+    public async Task<TEntity?> GetByIdAsync(Guid id)
     {
         try
         {
@@ -66,7 +66,7 @@ public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : clas
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Guid id)
     {
         try
         {
