@@ -29,12 +29,12 @@ public class APIRegistryService : IAPIRegistryService
         });
     }
 
-    public async Task<APIRegistryDTO> GetAPIRegistryByIdAsync(Guid id)
+    public async Task<APIRegistryDTO?> GetAPIRegistryByIdAsync(Guid id)
     {
         var registry = await _repository.GetByIdAsync(id);
         if (registry == null)
         {
-            throw new Exception($"Registry with the id {id} does not exist");
+            return null;
         }
 
         return new APIRegistryDTO
@@ -49,12 +49,12 @@ public class APIRegistryService : IAPIRegistryService
         };
     }
 
-    public async Task<APIRegistryDTO> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO registryDto)
+    public async Task<APIRegistryDTO?> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO registryDto)
     {
         var registry = await _repository.GetByIdAsync(id);
         if (registry == null)
         {
-            throw new Exception($"Registry with the id {id} has not been found");
+            return null;
         }
 
         registry.UserID = registryDto.UserId;
@@ -87,15 +87,16 @@ public class APIRegistryService : IAPIRegistryService
             CreatedAt = DateTime.Now,
             LastModifiedAt = DateTime.Now,
         };
+        var createdRegistry = await _repository.AddAsync(registry);
         return new APIRegistryDTO()
         {
-            APIID = registry.APIID,
-            UserID = registry.UserID,
-            TargetURL = registry.TargetURL,
-            AuthType = registry.AuthType,
-            Status = registry.Status,
-            CreatedAt = registry.CreatedAt,
-            LastModifiedAt = registry.LastModifiedAt,
+            APIID = createdRegistry.APIID,
+            UserID = createdRegistry.UserID,
+            TargetURL = createdRegistry.TargetURL,
+            AuthType = createdRegistry.AuthType,
+            Status = createdRegistry.Status,
+            CreatedAt = createdRegistry.CreatedAt,
+            LastModifiedAt = createdRegistry.LastModifiedAt,
         };
     }
 

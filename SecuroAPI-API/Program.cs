@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SecuroAPI.BusinessLogic.Services;
+using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.DataAccess;
 using SecuroAPI.DataAccess.Entity;
 using SecuroAPI.DataAccess.Repositories;
@@ -16,6 +18,8 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IRepository<APIRegistry>,BaseRepository<APIRegistry>>();
+builder.Services.AddScoped<IAPIRegistryService,APIRegistryService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

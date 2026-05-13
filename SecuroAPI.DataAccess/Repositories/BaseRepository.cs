@@ -29,7 +29,7 @@ public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : clas
     {
         try
         {
-            return await _dbContext.Set<TEntity>().FindAsync();
+            return await _dbContext.Set<TEntity>().FindAsync(id);
         }
         catch (Exception e)
         {
