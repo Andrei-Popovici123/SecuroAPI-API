@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SecuroAPI.DataAccess.Entity;
+namespace SecuroAPI.DataAccess.Entities;
 
 public class APIRegistry
 {

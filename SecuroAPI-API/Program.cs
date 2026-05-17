@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.DataAccess;
-using SecuroAPI.DataAccess.Entity;
+using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 
@@ -17,10 +18,21 @@ builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
+
+//Identity
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options => { })
+    .AddEntityFrameworkStores<SecuroAPIDbContext>();
+    
+builder.Services.AddAuthorization();
+
+// Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>,BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryService,APIRegistryService>();
 
 var app = builder.Build();
+
+//Middleware Identity
+app.MapGroup("api/auth").MapIdentityApi<ApplicationUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

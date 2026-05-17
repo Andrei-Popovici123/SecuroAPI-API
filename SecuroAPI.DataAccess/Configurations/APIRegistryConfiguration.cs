@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SecuroAPI.DataAccess.Entity;
+using SecuroAPI.DataAccess.Entities;
 
 namespace SecuroAPI.DataAccess.Configurations;
 

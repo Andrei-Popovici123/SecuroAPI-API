@@ -1,6 +1,6 @@
 ﻿using SecuroAPI.BusinessLogic.DTO_s;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
-using SecuroAPI.DataAccess.Entity;
+using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 
 namespace SecuroAPI.BusinessLogic.Services;
