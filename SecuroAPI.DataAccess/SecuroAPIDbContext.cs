@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SecuroAPI.DataAccess.Configurations;
-using SecuroAPI.DataAccess.Entity;
+using SecuroAPI.DataAccess.Entities;
 
 namespace SecuroAPI.DataAccess;
 
-public class SecuroAPIDbContext: IdentityDbContext<IdentityUser>
+public class SecuroAPIDbContext: IdentityDbContext<ApplicationUser>
 {
     public SecuroAPIDbContext(DbContextOptions<SecuroAPIDbContext> options): base(options){}
 
