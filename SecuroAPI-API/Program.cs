@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -17,6 +18,14 @@ builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
+
+//Identity
+builder.Services.AddIdentityCore<IdentityUser>(options => { })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<SecuroAPIDbContext>();
+
+
+// Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>,BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryService,APIRegistryService>();
 
