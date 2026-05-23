@@ -23,7 +23,7 @@ namespace SecuroAPI_API.Controllers
         public async Task<IActionResult> Get()
         {
             var registries = await _apiRegistryService.GetAllAPIRegistriesAsync();
-             return Ok(registries);
+             return registries.IsSuccess? Ok(registries.Value): Empty;
         }
         
         [HttpGet("{id:guid}")]
@@ -39,7 +39,8 @@ namespace SecuroAPI_API.Controllers
         {
             if (registryDto == null) return BadRequest("API Registry data is null");
             var newAPIRegistry = await _apiRegistryService.CreateAPIRegistryAsync(registryDto);
-            return CreatedAtAction(nameof(GetByID), new { id = newAPIRegistry.APIID }, newAPIRegistry);;
+            return CreatedAtAction(nameof(GetByID), new { id = newAPIRegistry }, newAPIRegistry);
+            // return CreatedAtAction(nameof(GetByID), new { id = newAPIRegistry.APIID }, newAPIRegistry);
 
         }
 
