@@ -61,13 +61,6 @@ public class APIRegistryService : IAPIRegistryService
             
             if (registry == null) return Result<APIRegistryDTO>
                 .Failure(new Error("NotFound", $"API with the Id' {id} ' was not found"));
-            
-            var duplicateUrl = await APIRegistryExists(registryDto.TargetURL);
-            if (duplicateUrl)
-            {
-                return Result<APIRegistryDTO>.Failure(new Error("Conflict",
-                    $"API with the URL' {registryDto.TargetURL} ' is already Registered"));
-            }
 
 
             registry.UserID = registryDto.UserId;
