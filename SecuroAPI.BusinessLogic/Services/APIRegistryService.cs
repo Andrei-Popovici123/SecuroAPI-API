@@ -36,7 +36,9 @@ public class APIRegistryService : IAPIRegistryService
     {
         var registry = await _repository.GetByIdAsync(id);
 
-        if (registry == null) return Result<APIRegistryDTO>.NotFound();
+        if (registry == null)
+            return Result<APIRegistryDTO>
+                .Failure(new Error("NotFound", $"API with the Id' {id} ' was not found"));
 
         return Result<APIRegistryDTO>.Success(new APIRegistryDTO
         {
@@ -50,14 +52,18 @@ public class APIRegistryService : IAPIRegistryService
         });
     }
 
-    public async Task<Result<APIRegistryDTO>> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO registryDto)
+    public async Task<Result<APIRegistryDTO>> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO? registryDto)
     {
         try
         {
+            if (registryDto == null) return Result<APIRegistryDTO>.BadRequest();
             var registry = await _repository.GetByIdAsync(id);
-            if (registry == null) return Result<APIRegistryDTO>.NotFound();
-            var duplicateURL = APIRegistryExists(registryDto.TargetURL);
-            if (duplicateURL)
+            
+            if (registry == null) return Result<APIRegistryDTO>
+                .Failure(new Error("NotFound", $"API with the Id' {id} ' was not found"));
+            
+            var duplicateUrl = await APIRegistryExists(registryDto.TargetURL);
+            if (duplicateUrl)
             {
                 return Result<APIRegistryDTO>.Failure(new Error("Conflict",
                     $"API with the URL' {registryDto.TargetURL} ' is already Registered"));
@@ -65,10 +71,10 @@ public class APIRegistryService : IAPIRegistryService
 
 
             registry.UserID = registryDto.UserId;
-            registry.TargetURL = registryDto.TargetURL;
+            registry.TargetURL = registryDto.TargetURL.Trim();
             registry.AuthType = registryDto.AuthType;
             registry.Status = registryDto.Status;
-            registry.LastModifiedAt = DateTime.Now;
+            registry.LastModifiedAt = DateTime.UtcNow;
             var newRegistry = await _repository.UpdateAsync(registry);
 
             return Result<APIRegistryDTO>.Success(new APIRegistryDTO
@@ -82,17 +88,19 @@ public class APIRegistryService : IAPIRegistryService
                 LastModifiedAt = newRegistry.LastModifiedAt,
             });
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return Result<APIRegistryDTO>.Failure();
         }
     }
 
-    public async Task<Result<APIRegistryDTO>> CreateAPIRegistryAsync(CreateAPIRegistryDTO registryDto)
+    public async Task<Result<APIRegistryDTO>> CreateAPIRegistryAsync(CreateAPIRegistryDTO? registryDto)
     {
         try
         {
-            var exists = APIRegistryExists(registryDto.TargetURL);
+            if (registryDto == null) return Result<APIRegistryDTO>.BadRequest();;
+
+            var exists = await APIRegistryExists(registryDto.TargetURL);
             if (exists)
             {
                 return Result<APIRegistryDTO>.Failure(new Error("Conflict",
@@ -102,11 +110,11 @@ public class APIRegistryService : IAPIRegistryService
             var registry = new APIRegistry
             {
                 UserID = Guid.Empty,
-                TargetURL = registryDto.TargetURL,
+                TargetURL = registryDto.TargetURL.Trim(),
                 AuthType = registryDto.AuthType,
                 Status = registryDto.Status,
-                CreatedAt = DateTime.Now,
-                LastModifiedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
+                LastModifiedAt = DateTime.UtcNow,
             };
 
             var createdRegistry = await _repository.AddAsync(registry);
@@ -139,15 +147,18 @@ public class APIRegistryService : IAPIRegistryService
             await _repository.DeleteAsync(id);
             return Result.Success();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return Result.Failure();
         }
     }
 
-    public bool APIRegistryExists(string targetUrl)
+    public async Task<bool> APIRegistryExists(string targetUrl)
     {
-        //this should make a call to the registry it should also be async, and you can find the implementation in lecture 95
-        return false;
+        if (string.IsNullOrWhiteSpace(targetUrl)) return false;
+        string cleanedUrl = targetUrl.Trim();
+        
+        return await _repository
+            .CheckExistsAsync(u => u.TargetURL == cleanedUrl);
     }
 }

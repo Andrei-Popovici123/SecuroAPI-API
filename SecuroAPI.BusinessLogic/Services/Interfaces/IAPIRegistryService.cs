@@ -7,8 +7,8 @@ public interface IAPIRegistryService
 {
     Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesAsync();
     Task<Result<APIRegistryDTO>> GetAPIRegistryByIdAsync(Guid id);
-    Task<Result<APIRegistryDTO>> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO registryDto);
-    Task<Result<APIRegistryDTO>> CreateAPIRegistryAsync(CreateAPIRegistryDTO registryDto);
+    Task<Result<APIRegistryDTO>> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO? registryDto);
+    Task<Result<APIRegistryDTO>> CreateAPIRegistryAsync(CreateAPIRegistryDTO? registryDto);
     Task<Result> DeleteAPIRegistryAsync(Guid id);
-    bool APIRegistryExists(string targetUrl);
+    Task<bool> APIRegistryExists(string targetUrl);
 }

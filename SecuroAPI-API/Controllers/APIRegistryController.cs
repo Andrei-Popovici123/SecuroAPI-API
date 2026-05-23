@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -7,7 +6,7 @@ namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class APIRegistryController : ControllerBase
+    public class APIRegistryController : BaseFunctionalController
     {
         private readonly IAPIRegistryService _apiRegistryService;
 
@@ -20,48 +19,40 @@ namespace SecuroAPI_API.Controllers
 /// </summary>
 /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> Get()
         {
             var registries = await _apiRegistryService.GetAllAPIRegistriesAsync();
-             return registries.IsSuccess? Ok(registries.Value): Empty;
+            return ToActionResult(registries);
         }
         
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetByID(Guid id)
+        public async Task<ActionResult<APIRegistryDTO>> GetById(Guid id)
         {
             var registry = await _apiRegistryService.GetAPIRegistryByIdAsync(id);
-            if (registry == null) return NotFound($"API Registry with ID {id} was not found.");
-            return Ok(registry);
+            return ToActionResult(registry);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] CreateAPIRegistryDTO registryDto)
+        public async Task<ActionResult<APIRegistryDTO>> Post([FromBody] CreateAPIRegistryDTO registryDto)
         {
-            if (registryDto == null) return BadRequest("API Registry data is null");
-            var newAPIRegistry = await _apiRegistryService.CreateAPIRegistryAsync(registryDto);
-            return CreatedAtAction(nameof(GetByID), new { id = newAPIRegistry }, newAPIRegistry);
-            // return CreatedAtAction(nameof(GetByID), new { id = newAPIRegistry.APIID }, newAPIRegistry);
-
+            var newApiRegistryResult = await _apiRegistryService.CreateAPIRegistryAsync(registryDto);
+            if (!newApiRegistryResult.IsSuccess) return MapErrorToResponse(newApiRegistryResult.Errors);
+            return CreatedAtAction(nameof(GetById), new { id = newApiRegistryResult.Value!.APIID }, newApiRegistryResult.Value);
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Put(Guid id, [FromBody] UpdateAPIRegistryDTO registryDto)
+        public async Task<ActionResult<APIRegistryDTO>> Put(Guid id, [FromBody] UpdateAPIRegistryDTO registryDto)
         {
-            if(registryDto == null )return BadRequest("API Registry data is null");
             var registry = await _apiRegistryService.UpdateAPIRegistryAsync(id, registryDto);
-            if (registry == null) return NotFound($"API Registry with ID {id} was not found.");
-            return Ok(registry);
+            return ToActionResult(registry);
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var registry = await _apiRegistryService.GetAPIRegistryByIdAsync(id);
             
-            if (registry == null) return NotFound($"API Registry with ID {id} was not found.");
-            
-            await _apiRegistryService.DeleteAPIRegistryAsync(id);
-            return NoContent();
+            var deletedRegistry = await _apiRegistryService.DeleteAPIRegistryAsync(id);
+            return ToActionResult(deletedRegistry);
         }
     }
 }

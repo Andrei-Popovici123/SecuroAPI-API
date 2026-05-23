@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 
 namespace SecuroAPI.DataAccess.Repositories;
@@ -6,7 +7,6 @@ namespace SecuroAPI.DataAccess.Repositories;
 public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : class
 {
     private readonly SecuroAPIDbContext _dbContext;
-
 
     public BaseRepository(SecuroAPIDbContext dbContext)
     {
@@ -83,5 +83,14 @@ public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : clas
         {
             throw new Exception($"Error updating entity", e);
         }
+    }
+    public async Task<bool> CheckExistsAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        return await _dbContext.Set<TEntity>().AnyAsync(predicate);
+    }
+
+    public async Task<TEntity?> GetAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        return await _dbContext.Set<TEntity>().FirstOrDefaultAsync(predicate);
     }
 }
