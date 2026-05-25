@@ -32,16 +32,16 @@ builder.Services.AddScoped<IAPIRegistryService,APIRegistryService>();
 var app = builder.Build();
 
 //Middleware Identity
-app.MapGroup("api/auth").MapIdentityApi<ApplicationUser>();
+app.MapGroup("api/defaultAuth").MapIdentityApi<ApplicationUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.MapOpenApi();       
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+        options.SwaggerEndpoint("/openapi/v1.json", "0.1");
     });
 }
 
