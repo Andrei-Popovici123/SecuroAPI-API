@@ -1,4 +1,5 @@
 ﻿using SecuroAPI.BusinessLogic.DTO_s;
+using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 using SecuroAPI.BusinessLogic.Results;
 
 namespace SecuroAPI.BusinessLogic.Services.Interfaces;

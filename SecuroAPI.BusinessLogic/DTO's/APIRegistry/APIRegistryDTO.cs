@@ -1,4 +1,4 @@
-﻿namespace SecuroAPI.BusinessLogic.DTO_s;
+﻿namespace SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 
 public class APIRegistryDTO
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SecuroAPI_API.Constants;
+using SecuroAPI.BusinessLogic.Constants;
 using SecuroAPI.BusinessLogic.Results;
 
 namespace SecuroAPI_API.Controllers;

@@ -1,8 +1,8 @@
-﻿namespace SecuroAPI.BusinessLogic.DTO_s;
+﻿namespace SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 
-public class UpdateAPIRegistryDTO
+public class CreateAPIRegistryDTO
 {
-    public Guid UserId { get; set; }
+    public Guid UserID { get; set; }
     public string TargetURL { get; set; } = string.Empty;
     public string AuthType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;

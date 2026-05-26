@@ -1,9 +1,8 @@
-﻿using SecuroAPI.BusinessLogic.DTO_s;
+﻿using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 using SecuroAPI.BusinessLogic.Results;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
-
 namespace SecuroAPI.BusinessLogic.Services;
 
 public class APIRegistryService : IAPIRegistryService

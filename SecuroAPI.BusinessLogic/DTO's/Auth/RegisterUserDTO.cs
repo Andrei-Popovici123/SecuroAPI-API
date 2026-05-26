@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SecuroAPI.BusinessLogic.DTO_s;
+namespace SecuroAPI.BusinessLogic.DTO_s.Auth;
 
 public class RegisterUserDTO
 {

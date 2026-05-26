@@ -28,6 +28,7 @@ builder.Services.AddAuthorization();
 // Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>,BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryService,APIRegistryService>();
+builder.Services.AddScoped<IUserService,UserService>();
 
 var app = builder.Build();
 

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SecuroAPI.BusinessLogic.DTO_s;
+using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 
 namespace SecuroAPI_API.Controllers
