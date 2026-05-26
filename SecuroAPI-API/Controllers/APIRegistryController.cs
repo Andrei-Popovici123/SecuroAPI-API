@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -14,17 +15,18 @@ namespace SecuroAPI_API.Controllers
         {
             _apiRegistryService = apiRegistryService;
         }
-/// <summary>
-/// Crud Operations for APIRegistry
-/// </summary>
-/// <returns></returns>
+
+        /// <summary>
+        /// Crud Operations for APIRegistry
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> Get()
         {
             var registries = await _apiRegistryService.GetAllAPIRegistriesAsync();
             return ToActionResult(registries);
         }
-        
+        [Authorize]
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<APIRegistryDTO>> GetById(Guid id)
         {
@@ -37,7 +39,8 @@ namespace SecuroAPI_API.Controllers
         {
             var newApiRegistryResult = await _apiRegistryService.CreateAPIRegistryAsync(registryDto);
             if (!newApiRegistryResult.IsSuccess) return MapErrorToResponse(newApiRegistryResult.Errors);
-            return CreatedAtAction(nameof(GetById), new { id = newApiRegistryResult.Value!.APIID }, newApiRegistryResult.Value);
+            return CreatedAtAction(nameof(GetById), new { id = newApiRegistryResult.Value!.APIID },
+                newApiRegistryResult.Value);
         }
 
         [HttpPut("{id:guid}")]
@@ -50,7 +53,6 @@ namespace SecuroAPI_API.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            
             var deletedRegistry = await _apiRegistryService.DeleteAPIRegistryAsync(id);
             return ToActionResult(deletedRegistry);
         }

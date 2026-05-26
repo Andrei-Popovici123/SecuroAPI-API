@@ -1,5 +1,9 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SecuroAPI_API.Constants;
+using SecuroAPI_API.Handlers;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.DataAccess;
@@ -22,7 +26,13 @@ builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServe
 //Identity
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options => { })
     .AddEntityFrameworkStores<SecuroAPIDbContext>();
-    
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = AuthenticationDefaults.BasicScheme;
+    options.DefaultChallengeScheme = AuthenticationDefaults.BasicScheme;
+}).AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(AuthenticationDefaults.BasicScheme, _ => { });
+
 builder.Services.AddAuthorization();
 
 // Service and Repositories
