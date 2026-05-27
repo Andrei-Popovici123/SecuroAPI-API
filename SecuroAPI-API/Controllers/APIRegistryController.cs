@@ -20,6 +20,8 @@ namespace SecuroAPI_API.Controllers
         /// Crud Operations for APIRegistry
         /// </summary>
         /// <returns></returns>
+        ///
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> Get()
         {

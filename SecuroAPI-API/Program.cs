@@ -29,9 +29,11 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options => { })
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = AuthenticationDefaults.BasicScheme;
-    options.DefaultChallengeScheme = AuthenticationDefaults.BasicScheme;
-}).AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(AuthenticationDefaults.BasicScheme, _ => { });
+    options.DefaultAuthenticateScheme = AuthenticationDefaults.ApiKeyScheme;
+    options.DefaultChallengeScheme = AuthenticationDefaults.ApiKeyScheme;
+})
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(AuthenticationDefaults.BasicScheme, _ => { })
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(AuthenticationDefaults.ApiKeyScheme, _ => { });
 
 builder.Services.AddAuthorization();
 
@@ -39,6 +41,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IRepository<APIRegistry>,BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryService,APIRegistryService>();
 builder.Services.AddScoped<IUserService,UserService>();
+builder.Services.AddScoped<IApiKeyValidatorService, ApiKeyValidatorService>();
 
 var app = builder.Build();
 
