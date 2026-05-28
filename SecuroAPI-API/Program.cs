@@ -50,9 +50,9 @@ builder.Services.AddAuthentication(options =>
                 .GetBytes(builder.Configuration["JwtSettings:Key"])),
             ClockSkew = TimeSpan.Zero
         };
-    })
+    });
 
-    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(AuthenticationDefaults.BasicScheme, _ => { });
+    // .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(AuthenticationDefaults.BasicScheme, _ => { });
 // .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(AuthenticationDefaults.ApiKeyScheme, _ => { });
 
 builder.Services.AddAuthorization();

@@ -12,8 +12,8 @@ public class APIRegistry
     
     public string AuthType { get; set; }= string.Empty;
 
-    public string Status { get; set; }= string.Empty;
+    public string Status { get; set; } = "Inactive";
     //public virtual User User {get; set:} =null!;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     public DateTime? LastModifiedAt { get; set; }
 }

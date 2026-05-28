@@ -21,7 +21,7 @@ public class APIRegistryConfiguration : IEntityTypeConfiguration<APIRegistry>
 
         builder.Property(r => r.AuthType).HasMaxLength(50);
 
-        builder.Property(r => r.Status).HasDefaultValue("Inactive").HasMaxLength(20);
+        builder.Property(r => r.Status).HasMaxLength(20);
 
         builder.Property(r => r.CreatedAt).HasColumnType("datetime");
         

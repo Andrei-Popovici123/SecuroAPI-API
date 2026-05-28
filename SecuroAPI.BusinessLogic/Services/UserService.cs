@@ -23,7 +23,7 @@ public class UserService: IUserService
         _userManager = userManager;
         _configuration = configuration;
     }
-    public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto)
+    public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role)
     {
         var user = new ApplicationUser
         {
@@ -40,6 +40,7 @@ public class UserService: IUserService
                 .Select(e => new Error(ErrorCodes.BadRequest, e.Description)).ToArray();
             return Result<GetRegisteredUserDTO>.BadRequest(errors);
         }
+        await _userManager.AddToRoleAsync(user, role);
 
         var registeredUser = new GetRegisteredUserDTO
         {
