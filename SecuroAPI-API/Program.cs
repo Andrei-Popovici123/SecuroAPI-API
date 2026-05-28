@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using SecuroAPI_API.Constants;
 using SecuroAPI_API.Handlers;
 using SecuroAPI.BusinessLogic.Services;
@@ -21,7 +22,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "JWT Authorization header using the Bearer scheme."
+    });
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("bearer", document)] = []
+    });
+});
 
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
@@ -52,9 +66,6 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-    // .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>(AuthenticationDefaults.BasicScheme, _ => { });
-// .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(AuthenticationDefaults.ApiKeyScheme, _ => { });
-
 builder.Services.AddAuthorization();
 
 // Service and Repositories
@@ -73,7 +84,10 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "0.1"); });
+    app.UseSwaggerUI(options =>
+    {
+        options.EnablePersistAuthorization();
+    });
 }
 
 app.UseHttpsRedirection();
