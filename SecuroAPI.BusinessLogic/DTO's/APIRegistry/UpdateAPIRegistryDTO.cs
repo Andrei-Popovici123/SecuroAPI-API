@@ -2,7 +2,7 @@
 
 public class UpdateAPIRegistryDTO
 {
-    public Guid UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
     public string TargetURL { get; set; } = string.Empty;
     public string AuthType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;

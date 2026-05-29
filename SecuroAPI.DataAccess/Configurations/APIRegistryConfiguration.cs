@@ -11,8 +11,7 @@ public class APIRegistryConfiguration : IEntityTypeConfiguration<APIRegistry>
         builder.ToTable("APIRegistry")
             .HasKey(r => r.APIID);
 
-        builder.Property(r => r.UserID)
-            .HasMaxLength(36);
+        builder.Property(r => r.UserID);
 
         builder.Property(r => r.TargetURL)
             .HasMaxLength(2048);
@@ -24,7 +23,12 @@ public class APIRegistryConfiguration : IEntityTypeConfiguration<APIRegistry>
         builder.Property(r => r.Status).HasMaxLength(20);
 
         builder.Property(r => r.CreatedAt).HasColumnType("datetime");
-        
+
         builder.Property(r => r.LastModifiedAt).HasColumnType("datetime");
+
+        builder.HasOne(r => r.User)
+            .WithMany(u => u.Registries)
+            .HasForeignKey(r => r.UserID)
+            .HasConstraintName("FK_APIRegistry_User");
     }
 }

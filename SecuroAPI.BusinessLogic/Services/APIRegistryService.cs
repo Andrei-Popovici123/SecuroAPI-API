@@ -101,7 +101,7 @@ public class APIRegistryService : IAPIRegistryService
 
             var registry = new APIRegistry
             {
-                UserID = Guid.Empty,
+                UserID = registryDto.UserID,
                 TargetURL = registryDto.TargetURL.Trim(),
                 AuthType = registryDto.AuthType,
                 Status = registryDto.Status,
