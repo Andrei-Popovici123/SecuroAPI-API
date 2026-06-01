@@ -9,6 +9,7 @@ using Microsoft.OpenApi;
 using SecuroAPI_API.Handlers;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Models;
 using SecuroAPI.DataAccess;
 using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories;
@@ -36,6 +37,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+//db context
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
 
@@ -43,6 +45,14 @@ builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServe
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options => { })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<SecuroAPIDbContext>();
+
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
+
+if (string.IsNullOrWhiteSpace(jwtSettings.Key))
+{
+    throw new InvalidOperationException("JwtSettings: Key not configured");
+}
 
 builder.Services.AddAuthentication(options =>
     {
@@ -57,10 +67,9 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-            ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-                .GetBytes(builder.Configuration["JwtSettings:Key"])),
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
             ClockSkew = TimeSpan.Zero
         };
     });
@@ -85,10 +94,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.EnablePersistAuthorization();
-    });
+    app.UseSwaggerUI(options => { options.EnablePersistAuthorization(); });
 }
 
 app.UseHttpsRedirection();

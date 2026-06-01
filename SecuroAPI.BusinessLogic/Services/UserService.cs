@@ -3,10 +3,12 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Common.Constants;
+using SecuroAPI.Common.Models;
 using SecuroAPI.Common.Results;
 using SecuroAPI.DataAccess.Entities;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
@@ -16,12 +18,12 @@ namespace SecuroAPI.BusinessLogic.Services;
 public class UserService: IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IConfiguration _configuration;
+    private readonly IOptions<JwtSettings> _jwtOptions;
 
-    public UserService(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions)
     {
         _userManager = userManager;
-        _configuration = configuration;
+        _jwtOptions = jwtOptions;
     }
     public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role)
     {
@@ -75,7 +77,7 @@ public class UserService: IUserService
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Name, $"{user.FirstName} {user.LastName}"),
 
@@ -88,14 +90,14 @@ public class UserService: IUserService
         claims = claims.Union(roleClaims).ToList();
         //Jwt Key credentials
 
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.Key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         //Create and encode token
         var token = new JwtSecurityToken(
-            issuer:_configuration["JwtSettings:Issuer"],
-            audience:_configuration["JwtSettings:Audience"],
+            issuer:_jwtOptions.Value.Issuer,
+            audience:_jwtOptions.Value.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_configuration["JwtSettings:DurationInMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_jwtOptions.Value.DurationInMinutes)),
             signingCredentials: credentials
             );
 
