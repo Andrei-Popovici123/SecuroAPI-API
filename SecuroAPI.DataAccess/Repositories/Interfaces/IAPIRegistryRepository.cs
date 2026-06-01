@@ -4,5 +4,5 @@ namespace SecuroAPI.DataAccess.Repositories.Interfaces;
 
 public interface IAPIRegistryRepository: IRepository<APIRegistry>
 {
-    Task<IEnumerable<APIRegistry>> GetAllById(string id);
+    Task<IEnumerable<APIRegistry>> GetAllByUserId(string id);
 }

@@ -13,7 +13,7 @@ public class APIRegistryRepository:BaseRepository<APIRegistry>, IAPIRegistryRepo
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<APIRegistry>> GetAllById(string id)
+    public async Task<IEnumerable<APIRegistry>> GetAllByUserId(string id)
     {
         return await _dbContext.APIRegistries
             .Where(r => r.UserID == id)

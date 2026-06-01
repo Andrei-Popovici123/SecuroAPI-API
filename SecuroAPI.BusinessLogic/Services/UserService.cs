@@ -15,7 +15,7 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace SecuroAPI.BusinessLogic.Services;
 
-public class UserService: IUserService
+public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IOptions<JwtSettings> _jwtOptions;
@@ -25,6 +25,7 @@ public class UserService: IUserService
         _userManager = userManager;
         _jwtOptions = jwtOptions;
     }
+
     public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role)
     {
         var user = new ApplicationUser
@@ -42,6 +43,7 @@ public class UserService: IUserService
                 .Select(e => new Error(ErrorCodes.BadRequest, e.Description)).ToArray();
             return Result<GetRegisteredUserDTO>.BadRequest(errors);
         }
+
         await _userManager.AddToRoleAsync(user, role);
 
         var registeredUser = new GetRegisteredUserDTO
@@ -58,13 +60,15 @@ public class UserService: IUserService
     public async Task<Result<string>> LoginUserAsync(LoginUserDTO loginUserDto)
     {
         var user = await _userManager.FindByEmailAsync(loginUserDto.Email);
-        if (user == null) return Result<string>
-            .Failure(new Error( ErrorCodes.BadRequest, "Invalid Credentials" ));
+        if (user == null)
+            return Result<string>
+                .Failure(new Error(ErrorCodes.BadRequest, "Invalid Credentials"));
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, loginUserDto.Password);
-        if (!isPasswordValid) return Result<string>
-            .Failure(new Error( ErrorCodes.BadRequest, "Invalid Credentials" ));
-        
+        if (!isPasswordValid)
+            return Result<string>
+                .Failure(new Error(ErrorCodes.BadRequest, "Invalid Credentials"));
+
         // token Issuing
         var token = await GenerateToken(user);
 
@@ -80,9 +84,8 @@ public class UserService: IUserService
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Name, $"{user.FirstName} {user.LastName}"),
-
         };
-        
+
         //user role claims
         var roles = await _userManager.GetRolesAsync(user);
         var roleClaims = roles.Select(x => new Claim(ClaimTypes.Role, x)).ToList();
@@ -94,12 +97,12 @@ public class UserService: IUserService
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         //Create and encode token
         var token = new JwtSecurityToken(
-            issuer:_jwtOptions.Value.Issuer,
-            audience:_jwtOptions.Value.Audience,
+            issuer: _jwtOptions.Value.Issuer,
+            audience: _jwtOptions.Value.Audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_jwtOptions.Value.DurationInMinutes)),
             signingCredentials: credentials
-            );
+        );
 
         //return token value
         return new JwtSecurityTokenHandler().WriteToken(token);

@@ -7,8 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SecuroAPI.Common\SecuroAPI.Common.csproj" />
       <ProjectReference Include="..\SecuroAPI.DataAccess\SecuroAPI.DataAccess.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="10.0.7" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.7" />
     </ItemGroup>
 
 </Project>

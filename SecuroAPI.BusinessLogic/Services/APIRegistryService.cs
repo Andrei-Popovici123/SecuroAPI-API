@@ -56,7 +56,7 @@ public class APIRegistryService : IAPIRegistryService
     public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesByUserID(string id)
     {
         
-        var registries = await _repository.GetAllById(id);
+        var registries = await _repository.GetAllByUserId(id);
         var mappedRegistries = registries.Select(r => new APIRegistryDTO
         {
             APIID = r.APIID,
