@@ -1,4 +1,6 @@
-﻿using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
+﻿using Microsoft.AspNetCore.Identity;
+using SecuroAPI.BusinessLogic.Constants;
+using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 using SecuroAPI.BusinessLogic.Results;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.DataAccess.Entities;
@@ -7,9 +9,9 @@ namespace SecuroAPI.BusinessLogic.Services;
 
 public class APIRegistryService : IAPIRegistryService
 {
-    private readonly IRepository<APIRegistry> _repository;
+    private readonly IAPIRegistryRepository _repository;
 
-    public APIRegistryService(IRepository<APIRegistry> repository)
+    public APIRegistryService(IAPIRegistryRepository repository)
     {
         _repository = repository;
     }
@@ -37,7 +39,7 @@ public class APIRegistryService : IAPIRegistryService
 
         if (registry == null)
             return Result<APIRegistryDTO>
-                .Failure(new Error("NotFound", $"API with the Id' {id} ' was not found"));
+                .Failure(new Error(ErrorCodes.NotFound, $"API with the Id' {id} ' was not found"));
 
         return Result<APIRegistryDTO>.Success(new APIRegistryDTO
         {
@@ -50,6 +52,23 @@ public class APIRegistryService : IAPIRegistryService
             LastModifiedAt = registry.LastModifiedAt,
         });
     }
+    
+    public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesByUserID(string id)
+    {
+        
+        var registries = await _repository.GetAllById(id);
+        var mappedRegistries = registries.Select(r => new APIRegistryDTO
+        {
+            APIID = r.APIID,
+            UserID = r.UserID,
+            TargetURL = r.TargetURL,
+            AuthType = r.AuthType,
+            Status = r.Status,
+            CreatedAt = r.CreatedAt,
+            LastModifiedAt = r.LastModifiedAt,
+        });
+        return Result<IEnumerable<APIRegistryDTO>>.Success(mappedRegistries);
+    }
 
     public async Task<Result<APIRegistryDTO>> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO? registryDto)
     {
@@ -59,7 +78,7 @@ public class APIRegistryService : IAPIRegistryService
             var registry = await _repository.GetByIdAsync(id);
             
             if (registry == null) return Result<APIRegistryDTO>
-                .Failure(new Error("NotFound", $"API with the Id' {id} ' was not found"));
+                .Failure(new Error(ErrorCodes.NotFound, $"API with the Id' {id} ' was not found"));
 
 
             registry.UserID = registryDto.UserId;
@@ -134,7 +153,7 @@ public class APIRegistryService : IAPIRegistryService
         {
             var registry = await _repository.GetByIdAsync(id);
             if (registry == null)
-                return Result.NotFound(new Error("NotFound", $"The API with ID '{id}' does not exist"));
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"The API with ID '{id}' does not exist"));
 
             await _repository.DeleteAsync(id);
             return Result.Success();
@@ -153,4 +172,6 @@ public class APIRegistryService : IAPIRegistryService
         return await _repository
             .CheckExistsAsync(u => u.TargetURL == cleanedUrl);
     }
+
+
 }

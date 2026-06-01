@@ -36,6 +36,15 @@ namespace SecuroAPI_API.Controllers
             return ToActionResult(registry);
         }
 
+        
+        [HttpGet("userId/{id}")]
+        
+        public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> GetByUserId(string id)
+        {
+            var registries = await _apiRegistryService.GetAllAPIRegistriesByUserID(id);
+            return ToActionResult(registries);
+        }
+        
         [HttpPost]
         public async Task<ActionResult<APIRegistryDTO>> Post([FromBody] CreateAPIRegistryDTO registryDto)
         {

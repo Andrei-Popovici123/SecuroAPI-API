@@ -6,9 +6,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\SecuroAPI.Common\SecuroAPI.Common.csproj" />
-      <ProjectReference Include="..\SecuroAPI.DataAccess\SecuroAPI.DataAccess.csproj" />
-    </ItemGroup>
-
 </Project>

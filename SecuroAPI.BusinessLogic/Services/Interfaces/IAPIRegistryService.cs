@@ -12,4 +12,5 @@ public interface IAPIRegistryService
     Task<Result<APIRegistryDTO>> CreateAPIRegistryAsync(CreateAPIRegistryDTO? registryDto);
     Task<Result> DeleteAPIRegistryAsync(Guid id);
     Task<bool> APIRegistryExists(string targetUrl);
+    Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesByUserID(string id);
 }

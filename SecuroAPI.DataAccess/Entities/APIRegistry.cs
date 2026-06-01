@@ -14,7 +14,7 @@ public class APIRegistry
 
     public string Status { get; set; } = "Inactive";
 
-    public string UserID { get; set; } 
+    public string UserID { get; set; } = string.Empty;
     public virtual ApplicationUser User {get; set; } =null!;
     public DateTime CreatedAt { get; set; }
     public DateTime? LastModifiedAt { get; set; }
