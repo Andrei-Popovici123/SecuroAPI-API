@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SecuroAPI.BusinessLogic.Constants;
-using SecuroAPI.BusinessLogic.Results;
+using SecuroAPI.Common.Constants;
+using SecuroAPI.Common.Results;
 
 namespace SecuroAPI_API.Controllers;
 

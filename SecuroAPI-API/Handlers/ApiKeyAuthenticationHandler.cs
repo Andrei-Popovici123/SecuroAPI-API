@@ -1,4 +1,4 @@
-﻿using SecuroAPI_API.Constants;
+﻿using SecuroAPI.Common.Constants;
 
 namespace SecuroAPI_API.Handlers;
 

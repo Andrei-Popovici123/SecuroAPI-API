@@ -4,10 +4,10 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using SecuroAPI.BusinessLogic.Constants;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
-using SecuroAPI.BusinessLogic.Results;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
+using SecuroAPI.Common.Results;
 using SecuroAPI.DataAccess.Entities;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 

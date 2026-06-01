@@ -1,5 +1,4 @@
-﻿namespace SecuroAPI.BusinessLogic.Constants;
-
+﻿namespace SecuroAPI.Common.Constants;
 
 /// <summary>
 /// This is to reduce the amount of strings I have to type out, and reduce mistakes =)

@@ -1,4 +1,4 @@
-﻿namespace SecuroAPI.BusinessLogic.Results;
+﻿namespace SecuroAPI.Common.Results;
 
 /// <summary>
 /// Result pattern for results with no type
@@ -32,24 +32,23 @@ public readonly record struct Result<T>
 
     private Result(bool isSuccess, T? value, Error[] errors)
         => (IsSuccess, Value, Errors) = (isSuccess, value, errors);
-    
-    public static Result<T> Success(T value) => new(true,value, Array.Empty<Error>());
 
-    public static Result<T> Failure(params Error[] errors) => new(false,default, errors);
-    
-    public static Result<T> NotFound() => new(false,default, []);
-    
-    public static Result<T> BadRequest() => new(false,default, []);
-    public static Result<T> BadRequest(params Error[] errors) => new(false,default, errors);
-    
+    public static Result<T> Success(T value) => new(true, value, Array.Empty<Error>());
+
+    public static Result<T> Failure(params Error[] errors) => new(false, default, errors);
+
+    public static Result<T> NotFound() => new(false, default, []);
+
+    public static Result<T> BadRequest() => new(false, default, []);
+    public static Result<T> BadRequest(params Error[] errors) => new(false, default, errors);
+
 
     public Result<K> Map<K>(Func<T, K> map)
         => IsSuccess ? Result<K>.Success(map(Value!)) : Result<K>.Failure(Errors);
 
     public Result<K> Bind<K>(Func<T, Result<K>> next)
         => IsSuccess ? next(Value!) : Result<K>.Failure(Errors);
-    
+
     public Result<T> Ensure(Func<T, bool> predicate, Error error)
-        => IsSuccess && !predicate(Value!)? Failure(error):this;
+        => IsSuccess && !predicate(Value!) ? Failure(error) : this;
 }
-        

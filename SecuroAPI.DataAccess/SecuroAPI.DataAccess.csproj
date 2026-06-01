@@ -20,4 +20,8 @@
       </PackageReference>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\SecuroAPI.Common\SecuroAPI.Common.csproj" />
+    </ItemGroup>
+
 </Project>

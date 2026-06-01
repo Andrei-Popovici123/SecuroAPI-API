@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SecuroAPI.Common.Constants;
 
 namespace SecuroAPI.DataAccess.Configurations;
 
@@ -12,15 +13,15 @@ public class RoleConfiguration : IEntityTypeConfiguration<IdentityRole>
             new IdentityRole
             {
                 Id = "9780c339-65f4-42fd-80d9-027e072bd570",
-                Name = "Administrator",
-                NormalizedName = "ADMINISTRATOR",
+                Name = RoleNames.Administrator,
+                NormalizedName = RoleNames.Administrator.ToUpper(),
                 ConcurrencyStamp = "82d29c6e-0376-4709-80fe-7d23604055f3"
             },
             new IdentityRole
             {
                 Id = "c1f36078-5058-43eb-909d-14dbfbe1182d",
-                Name = "User",
-                NormalizedName = "USER",
+                Name = RoleNames.User,
+                NormalizedName = RoleNames.User.ToUpper(),
                 ConcurrencyStamp = "48632ef6-990b-461a-914f-f992af2c9568"
             }
         );

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using SecuroAPI.BusinessLogic.Constants;
 using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
-using SecuroAPI.BusinessLogic.Results;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
+using SecuroAPI.Common.Results;
 using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 namespace SecuroAPI.BusinessLogic.Services;

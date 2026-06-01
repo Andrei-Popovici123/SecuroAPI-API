@@ -1,6 +1,6 @@
 ﻿using SecuroAPI.BusinessLogic.DTO_s;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
-using SecuroAPI.BusinessLogic.Results;
+using SecuroAPI.Common.Results;
 
 namespace SecuroAPI.BusinessLogic.Services.Interfaces;
 

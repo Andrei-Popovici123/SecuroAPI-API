@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
-using SecuroAPI.BusinessLogic.Results;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
 using SecuroAPI.DataAccess.Entities;
 
 namespace SecuroAPI_API.Controllers
@@ -24,15 +24,15 @@ namespace SecuroAPI_API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<GetRegisteredUserDTO>> RegisterUser(RegisterUserDTO registerUserDto)
         {
-            var result = await _userService.RegisterUserAsync(registerUserDto, "User");
+            var result = await _userService.RegisterUserAsync(registerUserDto, RoleNames.User);
             return ToActionResult(result);
         }
         
         [HttpPost("registerAdmin")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<GetRegisteredUserDTO>> RegisterAdmin(RegisterUserDTO registerUserDto)
         {
-            var result = await _userService.RegisterUserAsync(registerUserDto, "Administrator");
+            var result = await _userService.RegisterUserAsync(registerUserDto, RoleNames.Administrator);
             return ToActionResult(result);
         }
         

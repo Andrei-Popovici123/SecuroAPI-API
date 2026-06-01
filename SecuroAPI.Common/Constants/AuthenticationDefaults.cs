@@ -1,4 +1,4 @@
-﻿namespace SecuroAPI_API.Constants;
+﻿namespace SecuroAPI.Common.Constants;
 
 public class AuthenticationDefaults
 {

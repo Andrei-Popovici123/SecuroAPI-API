@@ -1,4 +1,5 @@
-﻿namespace SecuroAPI.BusinessLogic.Results;
+﻿namespace SecuroAPI.Common.Results;
+
 /// <summary>
 /// Creates an error type for the results pattern
 /// </summary>
