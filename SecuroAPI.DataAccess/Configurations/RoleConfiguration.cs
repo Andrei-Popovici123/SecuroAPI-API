@@ -24,6 +24,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<IdentityRole>
                 NormalizedName = RoleNames.User.ToUpper(),
                 ConcurrencyStamp = "48632ef6-990b-461a-914f-f992af2c9568"
             }
+            
         );
     }
 }

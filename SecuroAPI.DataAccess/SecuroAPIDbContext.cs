@@ -12,6 +12,8 @@ public class SecuroAPIDbContext: IdentityDbContext<ApplicationUser>
     public SecuroAPIDbContext(DbContextOptions<SecuroAPIDbContext> options): base(options){}
 
     public DbSet<APIRegistry> APIRegistries { get; set; }
+    public DbSet<ScoreReport> ScoreReports { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
