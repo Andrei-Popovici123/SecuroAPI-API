@@ -4,7 +4,7 @@ namespace SecuroAPI.DataAccess.Entities;
 
 public class AnomalyLog
 {
-    public int AnomalyId { get; set; }
+    public Guid AnomalyId { get; set; }
     
     public string AnomalyType { get; set; } = string.Empty;
     

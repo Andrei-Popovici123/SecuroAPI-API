@@ -18,6 +18,7 @@ public class APIRegistry
     public DateTime CreatedAt { get; set; }
     public DateTime? LastModifiedAt { get; set; }
 
+    public TestConfig? TestConfig { get; set; }
     public ICollection<Rating> Ratings { get; set; } = new HashSet<Rating>();
     public ICollection<AnomalyLog> AnomalyLogs { get; set; } = new HashSet<AnomalyLog>();
 }

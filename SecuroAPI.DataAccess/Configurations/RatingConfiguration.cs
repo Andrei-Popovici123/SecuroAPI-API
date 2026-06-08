@@ -25,7 +25,7 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
         
         builder.HasOne(x => x.Registry)
             .WithMany(r=>r.Ratings)
-            .HasForeignKey(x => x.RegistryId)
+            .HasForeignKey(x => x.APIID)
             .OnDelete(DeleteBehavior.Cascade);
         
     }

@@ -10,7 +10,7 @@ public class Rating
     
     public int OverallScore { get; set; }
     
-    public Guid RegistryId { get; set; }
+    public Guid APIID { get; set; }
     
     public DateTime CreatedAt { get; set; }
     public DateTime? LastModifiedAt { get; set; }

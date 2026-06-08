@@ -14,6 +14,8 @@ public class SecuroAPIDbContext: IdentityDbContext<ApplicationUser>
     public DbSet<APIRegistry> APIRegistries { get; set; }
     public DbSet<ScoreReport> ScoreReports { get; set; }
     public DbSet<Rating> Ratings { get; set; }
+    public DbSet<AnomalyLog> AnomalyLogs { get; set; }
+    public DbSet<TestConfig> TestConfigs { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
