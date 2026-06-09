@@ -81,7 +81,7 @@ public class APIRegistryService : IAPIRegistryService
                 .Failure(new Error(ErrorCodes.NotFound, $"API with the Id' {id} ' was not found"));
 
 
-            registry.UserID = registryDto.UserId;
+            registry.UserID = registryDto.UserID;
             registry.TargetURL = registryDto.TargetURL.Trim();
             registry.AuthType = registryDto.AuthType;
             registry.Status = registryDto.Status;
