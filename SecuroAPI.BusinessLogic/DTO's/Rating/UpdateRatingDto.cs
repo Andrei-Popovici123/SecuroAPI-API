@@ -16,6 +16,4 @@ public class UpdateRatingDto
     [Range(0, 100)]
     public int OverallScore { get; set; }
     
-    [Required]
-    public Guid APIID { get; set; }
 }
