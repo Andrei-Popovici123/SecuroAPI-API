@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SecuroAPI.DataAccess;
 
@@ -11,9 +12,11 @@ using SecuroAPI.DataAccess;
 namespace SecuroAPI.DataAccess.Migrations
 {
     [DbContext(typeof(SecuroAPIDbContext))]
-    partial class SecuroAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609221243_AddedTimeStampToAnomalyLog")]
+    partial class AddedTimeStampToAnomalyLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

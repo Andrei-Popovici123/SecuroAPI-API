@@ -7,6 +7,7 @@ namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class APIRegistryController : BaseFunctionalController
     {
         private readonly IAPIRegistryService _apiRegistryService;
@@ -21,14 +22,14 @@ namespace SecuroAPI_API.Controllers
         /// </summary>
         /// <returns></returns>
         ///
-        [Authorize]
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> Get()
         {
             var registries = await _apiRegistryService.GetAllAPIRegistriesAsync();
             return ToActionResult(registries);
         }
-        [Authorize]
+        
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<APIRegistryDTO>> GetById(Guid id)
         {

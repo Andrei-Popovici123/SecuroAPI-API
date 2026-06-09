@@ -79,10 +79,12 @@ builder.Services.AddAuthorization();
 // Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();
+builder.Services.AddScoped<IAnomalyLogRepository,AnomalyLogRepository>();
 
 builder.Services.AddScoped<IAPIRegistryService, APIRegistryService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApiKeyValidatorService, ApiKeyValidatorService>();
+builder.Services.AddScoped<IAnomalyLogService, AnomalyLogService>();
 
 var app = builder.Build();
 

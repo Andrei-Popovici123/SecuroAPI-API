@@ -12,5 +12,7 @@ public class AnomalyLogDto
         
     public bool NotificationSent { get; set; }
 
+    public DateTime TimeStamp { get; set; }
+
     public Guid APIID { get; set; }
 }

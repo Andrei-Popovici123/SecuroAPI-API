@@ -9,19 +9,21 @@ public class AnomalyLogConfiguration : IEntityTypeConfiguration<AnomalyLog>
     public void Configure(EntityTypeBuilder<AnomalyLog> builder)
     {
         builder.ToTable("AnomalyLogs")
-            .HasKey(x => x.AnomalyId);
+            .HasKey(l => l.AnomalyId);
 
-        builder.Property(x => x.AnomalyType)
+        builder.Property(l => l.AnomalyType)
             .IsRequired()
             .HasMaxLength(150);
 
-        builder.Property(x => x.Severity)
+        builder.Property(l => l.Severity)
             .HasConversion<string>()
             .HasMaxLength(50)
             .IsRequired();
 
-        builder.Property(x => x.NotificationSent)
+        builder.Property(l => l.NotificationSent)
             .HasDefaultValue(false);
+        
+        builder.Property(l=>l.TimeStamp).HasColumnType("datetime");
         
         builder.HasOne(l => l.ApiRegistry)
             .WithMany(r => r.AnomalyLogs)
