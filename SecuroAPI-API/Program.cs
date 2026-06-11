@@ -80,11 +80,13 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();
 builder.Services.AddScoped<IAnomalyLogRepository,AnomalyLogRepository>();
+builder.Services.AddScoped<IRatingRepository,RatingRepository>();
 
 builder.Services.AddScoped<IAPIRegistryService, APIRegistryService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApiKeyValidatorService, ApiKeyValidatorService>();
 builder.Services.AddScoped<IAnomalyLogService, AnomalyLogService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
 
 var app = builder.Build();
 

@@ -56,17 +56,17 @@ namespace SecuroAPI_API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<AnomalyLogDto>> Put(Guid id, [FromBody] UpdateAnomalyLogDto anomalyLogDtoDto)
+        public async Task<ActionResult<AnomalyLogDto>> Put(Guid id, [FromBody] UpdateAnomalyLogDto anomalyLogDto)
         {
-            var registry = await _anomalyLogService.UpdateAnomalyLogAsync(id, anomalyLogDtoDto);
+            var registry = await _anomalyLogService.UpdateAnomalyLogAsync(id, anomalyLogDto);
             return ToActionResult(registry);
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var deletedAnmalyLog = await _anomalyLogService.DeleteAnomalyLogAsync(id);
-            return ToActionResult(deletedAnmalyLog);
+            var deletedAnomalyLog = await _anomalyLogService.DeleteAnomalyLogAsync(id);
+            return ToActionResult(deletedAnomalyLog);
         }
     }
 }
