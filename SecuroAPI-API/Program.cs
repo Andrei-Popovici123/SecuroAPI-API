@@ -82,6 +82,7 @@ builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();
 builder.Services.AddScoped<IAnomalyLogRepository,AnomalyLogRepository>();
 builder.Services.AddScoped<IRatingRepository,RatingRepository>();
 builder.Services.AddScoped<IScoreReportRepository,ScoreReportRepository>();
+builder.Services.AddScoped<ITestConfigRepository,TestConfigRepository>();
 
 builder.Services.AddScoped<IAPIRegistryService, APIRegistryService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -89,6 +90,7 @@ builder.Services.AddScoped<IApiKeyValidatorService, ApiKeyValidatorService>();
 builder.Services.AddScoped<IAnomalyLogService, AnomalyLogService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IScoreReportService, ScoreReportService>();
+builder.Services.AddScoped<ITestConfigService, TestConfigService>();
 
 var app = builder.Build();
 

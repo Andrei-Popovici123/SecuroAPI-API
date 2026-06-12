@@ -38,7 +38,7 @@ namespace SecuroAPI_API.Controllers
 
 
         [HttpGet("APIID/{id:guid}")]
-        public async Task<ActionResult<IEnumerable<AnomalyLogDto>>> GetByByAPIID(Guid id)
+        public async Task<ActionResult<IEnumerable<AnomalyLogDto>>> GetByAPIID(Guid id)
         {
             var anomalyLog = await _anomalyLogService.GetAllAnomalyLogByAPIID(id);
             return ToActionResult(anomalyLog);
