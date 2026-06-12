@@ -1,4 +1,6 @@
-﻿using SecuroAPI.BusinessLogic.DTO_s.Rating;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using SecuroAPI.BusinessLogic.DTO_s.Rating;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Common.Constants;
 using SecuroAPI.Common.Results;
@@ -118,6 +120,11 @@ public class RatingService : IRatingService
                 LastModifiedAt = newRating.LastModifiedAt
             });
         }
+        // catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
+        // {
+        //     return Result<RatingDto>.Failure(new Error(ErrorCodes.NotFound,$"Validation failed: The provided APIID '{ratingDto!.APIID}' does not exist."));
+        // }
+        // figure out how to get rid of 500 on wrong apiid
         catch (Exception)
         {
             return Result<RatingDto>.Failure();

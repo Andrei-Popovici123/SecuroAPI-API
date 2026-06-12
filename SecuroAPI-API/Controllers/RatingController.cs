@@ -38,7 +38,7 @@ namespace SecuroAPI_API.Controllers
 
 
         [HttpGet("APIID/{id:guid}")]
-        public async Task<ActionResult<IEnumerable<RatingDto>>> GetByUserId(Guid id)
+        public async Task<ActionResult<IEnumerable<RatingDto>>> GetByByAPIID(Guid id)
         {
             var rating = await _ratingService.GetAllRatingsByAPIID(id);
             return ToActionResult(rating);
