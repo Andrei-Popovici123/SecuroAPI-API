@@ -17,7 +17,7 @@ public class ScoreReportConfiguration: IEntityTypeConfiguration<ScoreReport>
     builder.Property(x => x.Severity)
         .HasConversion<string>() 
         .HasMaxLength(20) 
-        .HasDefaultValue(Severity.Low);
+        .IsRequired();
 
     builder.Property(x => x.Summary)
     .IsRequired()

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using SecuroAPI.Common.Enums;
 
 namespace SecuroAPI.DataAccess.Entities;
 
@@ -11,7 +12,7 @@ public class APIRegistry
 
     public string AuthType { get; set; } = string.Empty;
 
-    public string Status { get; set; } = "Inactive";
+    public APIStatus Status { get; set; } =APIStatus.Inactive;
 
     public string UserID { get; set; } = string.Empty;
     public virtual ApplicationUser User { get; set; } = null!;

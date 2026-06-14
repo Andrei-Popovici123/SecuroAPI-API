@@ -17,7 +17,7 @@ public class AnomalyLogConfiguration : IEntityTypeConfiguration<AnomalyLog>
 
         builder.Property(l => l.Severity)
             .HasConversion<string>()
-            .HasMaxLength(50)
+            .HasMaxLength(20)
             .IsRequired();
 
         builder.Property(l => l.NotificationSent)

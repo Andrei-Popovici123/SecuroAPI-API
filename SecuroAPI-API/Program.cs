@@ -19,7 +19,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen(options =>
@@ -54,6 +55,8 @@ if (string.IsNullOrWhiteSpace(jwtSettings.Key))
     throw new InvalidOperationException("JwtSettings: Key not configured");
 }
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -79,10 +82,10 @@ builder.Services.AddAuthorization();
 // Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();
-builder.Services.AddScoped<IAnomalyLogRepository,AnomalyLogRepository>();
-builder.Services.AddScoped<IRatingRepository,RatingRepository>();
-builder.Services.AddScoped<IScoreReportRepository,ScoreReportRepository>();
-builder.Services.AddScoped<ITestConfigRepository,TestConfigRepository>();
+builder.Services.AddScoped<IAnomalyLogRepository, AnomalyLogRepository>();
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+builder.Services.AddScoped<IScoreReportRepository, ScoreReportRepository>();
+builder.Services.AddScoped<ITestConfigRepository, TestConfigRepository>();
 
 builder.Services.AddScoped<IAPIRegistryService, APIRegistryService>();
 builder.Services.AddScoped<IUserService, UserService>();

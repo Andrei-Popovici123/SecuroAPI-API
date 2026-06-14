@@ -28,13 +28,6 @@ namespace SecuroAPI_API.Controllers
             return ToActionResult(result);
         }
         
-        [HttpPost("registerAdmin")]
-        [Authorize(Roles = RoleNames.Administrator)]
-        public async Task<ActionResult<GetRegisteredUserDTO>> RegisterAdmin(RegisterUserDTO registerUserDto)
-        {
-            var result = await _userService.RegisterUserAsync(registerUserDto, RoleNames.Administrator);
-            return ToActionResult(result);
-        }
         
         [HttpPost("login")]
         public async Task<ActionResult<string>> Login(LoginUserDTO loginUserDto)

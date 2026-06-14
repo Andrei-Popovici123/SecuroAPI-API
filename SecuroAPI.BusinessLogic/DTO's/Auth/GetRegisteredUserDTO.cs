@@ -1,4 +1,6 @@
-﻿namespace SecuroAPI.BusinessLogic.DTO_s.Auth;
+﻿using SecuroAPI.Common.Enums;
+
+namespace SecuroAPI.BusinessLogic.DTO_s.Auth;
 
 public class GetRegisteredUserDTO
 {
@@ -6,4 +8,5 @@ public class GetRegisteredUserDTO
     public string Email { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
+    public UserStatus Status { get; set; }
 }
