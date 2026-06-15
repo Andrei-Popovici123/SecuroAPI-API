@@ -13,11 +13,18 @@ public class BaseRepository<TEntity> : IRepository<TEntity> where TEntity : clas
         _dbContext = dbContext;
     }
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync()
+    public async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null)
     {
         try
         {
-            return await _dbContext.Set<TEntity>().ToListAsync();
+            IQueryable<TEntity> query = _dbContext.Set<TEntity>();
+            
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+            
+            return await query.AsNoTracking().ToListAsync();
         }
         catch (Exception e)
         {

@@ -31,7 +31,7 @@ public class APIRegistryService : IAPIRegistryService
             UserID = r.UserID,
             TargetURL = r.TargetURL,
             AuthType = r.AuthType,
-            Status = r.Status,
+            Status = r.Status.ToString(),
             CreatedAt = r.CreatedAt,
             LastModifiedAt = r.LastModifiedAt,
         });
@@ -53,7 +53,7 @@ public class APIRegistryService : IAPIRegistryService
             UserID = registry.UserID,
             TargetURL = registry.TargetURL,
             AuthType = registry.AuthType,
-            Status = registry.Status,
+            Status = registry.Status.ToString(),
             CreatedAt = registry.CreatedAt,
             LastModifiedAt = registry.LastModifiedAt,
         });
@@ -74,7 +74,7 @@ public class APIRegistryService : IAPIRegistryService
             UserID = r.UserID,
             TargetURL = r.TargetURL,
             AuthType = r.AuthType,
-            Status = r.Status,
+            Status = r.Status.ToString(),
             CreatedAt = r.CreatedAt,
             LastModifiedAt = r.LastModifiedAt,
         });
@@ -106,7 +106,7 @@ public class APIRegistryService : IAPIRegistryService
                 UserID = newRegistry.UserID,
                 TargetURL = newRegistry.TargetURL,
                 AuthType = newRegistry.AuthType,
-                Status = newRegistry.Status,
+                Status = newRegistry.Status.ToString(),
                 CreatedAt = newRegistry.CreatedAt,
                 LastModifiedAt = newRegistry.LastModifiedAt,
             });
@@ -134,7 +134,6 @@ public class APIRegistryService : IAPIRegistryService
             {
                 UserID = registryDto.UserID,
                 TargetURL = registryDto.TargetURL.Trim(),
-                AuthType = registryDto.AuthType,
                 Status = APIStatus.Inactive,
                 CreatedAt = DateTime.UtcNow,
                 LastModifiedAt = DateTime.UtcNow,
@@ -148,7 +147,7 @@ public class APIRegistryService : IAPIRegistryService
                 UserID = createdRegistry.UserID,
                 TargetURL = createdRegistry.TargetURL,
                 AuthType = createdRegistry.AuthType,
-                Status = createdRegistry.Status,
+                Status = createdRegistry.Status.ToString(),
                 CreatedAt = createdRegistry.CreatedAt,
                 LastModifiedAt = createdRegistry.LastModifiedAt,
             });

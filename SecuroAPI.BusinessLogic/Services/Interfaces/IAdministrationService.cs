@@ -6,9 +6,9 @@ namespace SecuroAPI.BusinessLogic.Services.Interfaces;
 
 public interface IAdministrationService
 {
-    public Task<IEnumerable<Result<GetRegisteredUserDTO>>> GetAllUnapprovedUsers();
-    public Task<IEnumerable<Result<GetRegisteredUserDTO>>> GetAllUsers();    
-    public Task<IEnumerable<Result<APIRegistryDTO>>> GetAllUnapprovedAPIs();
+    public Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUnapprovedUsers();
+    public Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUsers();    
+    public Task<Result<IEnumerable<APIRegistryDTO>>> GetAllUnapprovedAPIs();
     
     public Task<Result> ApproveUser(string id);
     public Task<Result> RejectUser(string id);

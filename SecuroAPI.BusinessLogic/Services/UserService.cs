@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Common.Constants;
+using SecuroAPI.Common.Enums;
 using SecuroAPI.Common.Models;
 using SecuroAPI.Common.Results;
 using SecuroAPI.DataAccess.Entities;
@@ -26,7 +27,7 @@ public class UserService : IUserService
         _jwtOptions = jwtOptions;
     }
 
-    public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role)
+    public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role,UserStatus status)
     {
         var user = new ApplicationUser
         {
@@ -34,6 +35,7 @@ public class UserService : IUserService
             FirstName = registerUserDto.FirstName,
             LastName = registerUserDto.LastName,
             UserName = registerUserDto.Email,
+            Status = status
         };
 
         var createdUser = await _userManager.CreateAsync(user, registerUserDto.Password);
@@ -51,7 +53,8 @@ public class UserService : IUserService
             Email = registerUserDto.Email,
             FirstName = registerUserDto.FirstName,
             LastName = registerUserDto.LastName,
-            Id = user.Id
+            Id = user.Id,
+            Status = user.Status.ToString()
         };
         //to add additional functionality
         return Result<GetRegisteredUserDTO>.Success(registeredUser);

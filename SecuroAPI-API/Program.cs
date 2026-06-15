@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -94,6 +95,7 @@ builder.Services.AddScoped<IAnomalyLogService, AnomalyLogService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IScoreReportService, ScoreReportService>();
 builder.Services.AddScoped<ITestConfigService, TestConfigService>();
+builder.Services.AddScoped<IAdministrationService, AdministrationService>();
 
 var app = builder.Build();
 

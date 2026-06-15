@@ -9,5 +9,4 @@ public class CreateAPIRegistryDTO
     [Required]
     [Url]
     public string TargetURL { get; set; } = string.Empty;
-    public string AuthType { get; set; } = string.Empty;
 }
