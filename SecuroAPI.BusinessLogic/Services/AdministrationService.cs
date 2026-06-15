@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
 using SecuroAPI.Common.Enums;
 using SecuroAPI.Common.Results;
 using SecuroAPI.DataAccess.Entities;
@@ -24,7 +25,7 @@ public class AdministrationService : IAdministrationService
     public async Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUnapprovedUsers()
     {
         var users = await _userManager.Users
-            .Where(u => u.Status==UserStatus.Pending)
+            .Where(u => u.Status == UserStatus.Pending)
             .ToListAsync();
         var mappedUsers = users.Select(r => new GetRegisteredUserDTO
         {
@@ -34,9 +35,8 @@ public class AdministrationService : IAdministrationService
             Id = r.Id,
             Status = r.Status.ToString()
         });
-        
-        return Result<IEnumerable<GetRegisteredUserDTO>>.Success(mappedUsers);
 
+        return Result<IEnumerable<GetRegisteredUserDTO>>.Success(mappedUsers);
     }
 
     public async Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUsers()
@@ -51,7 +51,7 @@ public class AdministrationService : IAdministrationService
             Id = r.Id,
             Status = r.Status.ToString()
         });
-        
+
         return Result<IEnumerable<GetRegisteredUserDTO>>.Success(mappedUsers);
     }
 
@@ -75,21 +75,102 @@ public class AdministrationService : IAdministrationService
 
     public async Task<Result> ApproveUser(string id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return Result.Failure();
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"User with ID '{id}' does not exist"));
+            }
+
+            user.Status = UserStatus.Approved;
+            user.LastModifiedAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            return Result.Success();
+        }
+        catch (Exception)
+        {
+            return Result.Failure();
+        }
     }
 
     public async Task<Result> RejectUser(string id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return Result.Failure();
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"User with ID '{id}' does not exist"));
+            }
+
+            user.Status = UserStatus.Banned;
+            user.LastModifiedAt = DateTime.UtcNow;
+
+             await _userManager.UpdateAsync(user);
+
+            return Result.Success();
+        }
+        catch (Exception)
+        {
+            return Result.Failure();
+        }
     }
 
     public async Task<Result> ApproveAPI(Guid id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
+            if (apiRegistry == null)
+            {
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
+            }
+
+            apiRegistry.Status = APIStatus.Approved;
+            apiRegistry.LastModifiedAt = DateTime.UtcNow;
+
+            await _apiRegistryRepository.UpdateAsync(apiRegistry);
+
+            return Result.Success();
+        }
+        catch (Exception)
+        {
+            return Result.Failure();
+        }
     }
 
     public async Task<Result> RejectAPI(Guid id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
+            if (apiRegistry == null)
+            {
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
+            }
+
+            apiRegistry.Status = APIStatus.Inactive;
+            apiRegistry.LastModifiedAt = DateTime.UtcNow;
+
+            await _apiRegistryRepository.UpdateAsync(apiRegistry);
+
+            return Result.Success();
+        }
+        catch (Exception)
+        {
+            return Result.Failure();
+        }
     }
 }
