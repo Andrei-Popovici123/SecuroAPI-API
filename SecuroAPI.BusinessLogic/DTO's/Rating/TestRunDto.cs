@@ -2,7 +2,7 @@
 
 namespace SecuroAPI.BusinessLogic.DTO_s.Rating;
 
-public class RatingDto
+public class TestRunDto
 {
     public Guid RatingId { get; set; }
         
@@ -12,6 +12,7 @@ public class RatingDto
         
     public int OverallScore { get; set; }
     
+    public ICollection<ScoreReportDto> Models { get; set; } = new HashSet<ScoreReportDto>();
     public Guid APIID { get; set; }
         
     public DateTime CreatedAt { get; set; }

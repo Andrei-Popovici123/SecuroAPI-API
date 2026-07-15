@@ -1,9 +1,11 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -20,12 +22,21 @@ public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IOptions<JwtSettings> _jwtOptions;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
+    public string UserId => _httpContextAccessor?
+        .HttpContext?
+        .User
+        .FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? String.Empty;
 
-    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions)
+    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor)
     {
         _userManager = userManager;
         _jwtOptions = jwtOptions;
+        _httpContextAccessor = httpContextAccessor;
     }
+
+
 
     public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role,UserStatus status)
     {
@@ -37,6 +48,8 @@ public class UserService : IUserService
             UserName = registerUserDto.Email,
             Status = status
         };
+        
+        
 
         var createdUser = await _userManager.CreateAsync(user, registerUserDto.Password);
         if (!createdUser.Succeeded)
