@@ -29,4 +29,8 @@
       <ProjectReference Include="..\SecuroAPI.BusinessLogic\SecuroAPI.BusinessLogic.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Messaging\" />
+    </ItemGroup>
+
 </Project>
