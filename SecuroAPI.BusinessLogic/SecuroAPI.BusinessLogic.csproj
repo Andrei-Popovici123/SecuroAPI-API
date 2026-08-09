@@ -7,10 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\SecuroAPI.Contracts\SecuroAPI.Contracts.csproj" />
       <ProjectReference Include="..\SecuroAPI.DataAccess\SecuroAPI.DataAccess.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="MediatR" Version="14.2.0" />
       <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="10.0.7" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.7" />
     </ItemGroup>

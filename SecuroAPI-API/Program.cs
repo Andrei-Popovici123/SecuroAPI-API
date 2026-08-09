@@ -8,8 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SecuroAPI_API.Handlers;
+using SecuroAPI_API.Messaging;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.BusinessLogic.Services.Publisher;
 using SecuroAPI.Common.Models;
 using SecuroAPI.DataAccess;
 using SecuroAPI.DataAccess.Entities;
@@ -96,7 +98,9 @@ builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IScoreReportService, ScoreReportService>();
 builder.Services.AddScoped<ITestConfigService, TestConfigService>();
 builder.Services.AddScoped<IAdministrationService, AdministrationService>();
+builder.Services.AddScoped<ITestRunService, TestRunService>();
 
+builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
 var app = builder.Build();
 
 //Middleware Identity

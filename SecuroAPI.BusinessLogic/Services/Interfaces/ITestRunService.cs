@@ -5,5 +5,5 @@ namespace SecuroAPI.BusinessLogic.Services.Interfaces;
 
 public interface ITestRunService
 {
-    Task<Result<TestRunDto>>RunTests(Guid APIID);
+    Task<Result<TestRunDto>> RunTests();
 }
