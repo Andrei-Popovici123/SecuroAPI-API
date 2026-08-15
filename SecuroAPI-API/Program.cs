@@ -13,6 +13,7 @@ using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.BusinessLogic.Services.Publisher;
 using SecuroAPI.Common.Models;
+using SecuroAPI.Contracts.Connection;
 using SecuroAPI.DataAccess;
 using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories;
@@ -82,6 +83,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton<RabbitMqConnection>();
 // Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();

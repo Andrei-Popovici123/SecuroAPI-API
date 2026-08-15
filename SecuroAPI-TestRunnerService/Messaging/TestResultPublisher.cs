@@ -1,32 +1,31 @@
-﻿
-using System.Text.Json;
+﻿using System.Text.Json;
 using RabbitMQ.Client;
-using SecuroAPI.BusinessLogic.Services.Publisher;
-using SecuroAPI.Contracts.Events;
 using SecuroAPI.Contracts.Connection;
-namespace SecuroAPI_API.Messaging;
+using SecuroAPI.Contracts.Events;
 
-public class TestJobPublisher : ITestJobPublisher
+namespace SecuroAPI_TestRunnerService.Messaging;
+
+public class TestResultPublisher
 {
     private readonly RabbitMqConnection _connection;
 
-    public TestJobPublisher(RabbitMqConnection connection)
+    public TestResultPublisher(RabbitMqConnection connection)
     {
         _connection = connection;
     }
 
-    public async Task PublishAsync(TestJobMessage message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(TestResultMessage message, CancellationToken cancellationToken = default)
     {
        await using var channel=await _connection.CreateChannelAsync(cancellationToken);
 
-        await channel.QueueDeclareAsync("test.jobs", durable: true, exclusive: false,
+        await channel.QueueDeclareAsync("test.results", durable: true, exclusive: false,
             autoDelete: false, arguments: null, cancellationToken: cancellationToken);
 
         var body = JsonSerializer.SerializeToUtf8Bytes(message);
 
         await channel.BasicPublishAsync(
         exchange: "",
-        routingKey: "test.jobs",
+        routingKey: "test.results",
         mandatory:false,
         basicProperties: new BasicProperties { Persistent = true},
         body : body,
