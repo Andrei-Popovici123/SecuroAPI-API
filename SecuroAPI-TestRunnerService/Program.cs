@@ -6,5 +6,6 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
 builder.Services.AddSingleton<RabbitMqConnection>();
 builder.Services.AddSingleton<TestResultPublisher>(); 
+builder.Services.AddSingleton<TestJobConsumer>(); 
 var host = builder.Build();
 host.Run();

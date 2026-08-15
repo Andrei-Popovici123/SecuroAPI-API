@@ -5,13 +5,14 @@ using SecuroAPI.Contracts.Events;
 
 namespace SecuroAPI_TestRunnerService;
 
-public class Worker(ILogger<Worker> logger, TestResultPublisher testResultPublisher) : BackgroundService
+public class Worker(ILogger<Worker> logger, TestResultPublisher testResultPublisher, TestJobConsumer consumer) : BackgroundService
 {
  
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        
+        await consumer.StartJobAsync(stoppingToken);
+        await Task.Delay(5000, stoppingToken);
         await testResultPublisher.PublishAsync(
             new TestResultMessage("Ia ni ca merge"),
             stoppingToken);
