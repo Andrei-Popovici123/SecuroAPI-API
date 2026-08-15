@@ -18,7 +18,11 @@ public class TestRunService : ITestRunService
     private readonly IUserService _userService;
     private readonly ITestJobPublisher _publisher;
     
-    public TestRunService(ITestConfigRepository configRepository, IRatingRepository ratingRepository, IAPIRegistryRepository apiRegistryRepository, IUserService userService, IScoreReportRepository apiScoreReportRepository, ITestJobPublisher publisher)
+    //To be removed in the future testing purposes for now
+    private readonly  IMonitoringRegisterPublisher _monitoringRegisterPublisher;
+    
+    
+    public TestRunService(ITestConfigRepository configRepository, IRatingRepository ratingRepository, IAPIRegistryRepository apiRegistryRepository, IUserService userService, IScoreReportRepository apiScoreReportRepository, ITestJobPublisher publisher, IMonitoringRegisterPublisher monitoringRegisterPublisher)
     {
         _configRepository = configRepository;
         _ratingRepository = ratingRepository;
@@ -26,6 +30,7 @@ public class TestRunService : ITestRunService
         _userService = userService;
         _apiScoreReportRepository = apiScoreReportRepository;
         _publisher = publisher;
+        _monitoringRegisterPublisher = monitoringRegisterPublisher;
     }
     
     public async Task<Result<TestRunDto>>RunTests()
@@ -50,6 +55,7 @@ public class TestRunService : ITestRunService
         // return new Result<TestRunDto>();
 
         await _publisher.PublishAsync(new TestJobMessage("https://x"));
+        await _monitoringRegisterPublisher.PublishAsync(new RegisterMonitoringMessage("https://x"));
         return  Result<TestRunDto>.Success(new TestRunDto());
     }
 }

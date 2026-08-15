@@ -103,6 +103,7 @@ builder.Services.AddScoped<IAdministrationService, AdministrationService>();
 builder.Services.AddScoped<ITestRunService, TestRunService>();
 
 builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
+builder.Services.AddSingleton<IMonitoringRegisterPublisher,MonitoringRegisterPublisher>();
 var app = builder.Build();
 
 //Middleware Identity
