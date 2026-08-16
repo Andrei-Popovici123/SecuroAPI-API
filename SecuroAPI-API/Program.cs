@@ -84,6 +84,8 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<RabbitMqConnection>();
+builder.Services.AddHostedService<TestResultConsumer>();
+builder.Services.AddHostedService<MonitoringResultConsumer>();
 // Service and Repositories
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();
