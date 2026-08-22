@@ -16,4 +16,11 @@
   <ItemGroup>
     <ProjectReference Include="..\SecuroAPI.Contracts\SecuroAPI.Contracts.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\.dockerignore">
+      <Link>.dockerignore</Link>
+      <DependentUpon>Dockerfile</DependentUpon>
+    </Content>
+  </ItemGroup>
 </Project>
