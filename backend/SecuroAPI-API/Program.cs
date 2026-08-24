@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using SecuroAPI_API.Handlers;
 using SecuroAPI_API.Messaging;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -19,6 +18,8 @@ using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 
+
+DotNetEnv.Env.Load();  
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -108,6 +109,11 @@ builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
 builder.Services.AddSingleton<IMonitoringRegisterPublisher,MonitoringRegisterPublisher>();
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SecuroAPIDbContext>();
+    db.Database.Migrate();
+}
 //Middleware Identity
 app.MapGroup("api/defaultAuth").MapIdentityApi<ApplicationUser>();
 

@@ -16,7 +16,7 @@ services:
       start_period: 30s
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:4.3-management
     environment:
       RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASS}"
@@ -33,8 +33,12 @@ services:
     build: { context: ./backend, dockerfile: SecuroAPI-API/Dockerfile }
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=SecuroAPI;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
+      ConnectionStrings__SecuroAPIDbContext: "Server=sqlserver,1433;Database=SecuroAPIDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
       RabbitMq__Host: rabbitmq
+      JwtSettings__Key: "${JWT_KEY}"
+      JwtSettings__Issuer: "${JWT_ISSUER}"
+      JwtSettings__Audience: "${JWT_AUDIENCE}"
+      JwtSettings__DurationInMinutes: "${JWT_DURATIONINMINUTES}"
       RabbitMq__Username: "${RABBITMQ_USER}"
       RabbitMq__Password: "${RABBITMQ_PASS}"
     ports: ["8080:8080"]
@@ -43,7 +47,7 @@ services:
       rabbitmq:  { condition: service_healthy }
 
   monitoring:
-    build: { context: ./backend, dockerfile: SecuroAPI.Monitoring/Dockerfile }
+    build: { context: ./backend, dockerfile: SecuroAPI-MonitoringService/Dockerfile }
     environment:
       RabbitMq__Host: rabbitmq
       RabbitMq__Username: "${RABBITMQ_USER}"
@@ -52,7 +56,7 @@ services:
       rabbitmq:  { condition: service_healthy }
 
   testrunner:
-    build: { context: ./backend, dockerfile: SecuroAPI.TestRunner/Dockerfile }
+    build: { context: ./backend, dockerfile: SecuroAPI-TestRunnerService/Dockerfile }
     environment:
       RabbitMq__Host: rabbitmq
       RabbitMq__Username: "${RABBITMQ_USER}"
