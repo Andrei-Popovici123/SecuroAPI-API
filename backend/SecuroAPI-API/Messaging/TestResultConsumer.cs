@@ -28,9 +28,9 @@ public class TestResultConsumer : BackgroundService
         consumer.ReceivedAsync += async (_, ea) =>
         {
             var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-            var message = JsonSerializer.Deserialize<TestResultMessage>(json);
+            var testResultMessage = JsonSerializer.Deserialize<TestResultMessage>(json);
 
-            _logger.LogInformation("Registered URL for monitoring: {MessageTargetUrl}", message?.TargetUrl);
+            _logger.LogInformation("Test results for: {APIID}: {ExitCode}, {Output}", testResultMessage?.APIID,testResultMessage?.ExitCode,testResultMessage?.Output);
 
             // TODO(persistence): open a scope here, resolve a scoped service, save the result
             // so the user can retrieve it later. This is where IServiceScopeFactory + DbContext

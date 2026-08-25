@@ -54,17 +54,26 @@ services:
       RabbitMq__Password: "${RABBITMQ_PASS}"
     depends_on:
       rabbitmq:  { condition: service_healthy }
-
+      
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    environment:
+      CONTAINERS: 1
+      POST: 1
+    volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
+    restart: unless-stopped 
+     
   testrunner:
     build: { context: ./backend, dockerfile: SecuroAPI-TestRunnerService/Dockerfile }
     environment:
+      DOCKER_HOST: tcp://socket-proxy:2375
       RabbitMq__Host: rabbitmq
       RabbitMq__Username: "${RABBITMQ_USER}"
       RabbitMq__Password: "${RABBITMQ_PASS}"
-    volumes: ["/var/run/docker.sock:/var/run/docker.sock"]
     depends_on:
       rabbitmq:  { condition: service_healthy }
-
+      socket-proxy: { condition: service_started }
+        
   frontend:
     build: { context: ./frontend }
     ports: ["4200:80"]

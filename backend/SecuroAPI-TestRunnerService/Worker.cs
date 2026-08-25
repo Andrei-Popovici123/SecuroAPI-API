@@ -5,7 +5,7 @@ using SecuroAPI.Contracts.Events;
 
 namespace SecuroAPI_TestRunnerService;
 
-public class Worker(ILogger<Worker> logger, TestResultPublisher testResultPublisher, TestJobConsumer consumer) : BackgroundService
+public class Worker(ILogger<Worker> logger, TestJobConsumer consumer) : BackgroundService
 {
  
 
@@ -13,14 +13,9 @@ public class Worker(ILogger<Worker> logger, TestResultPublisher testResultPublis
     { 
         
 
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            if (logger.IsEnabled(LogLevel.Information))
-            {
-                logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-            }
+        await consumer.StartAsync(stoppingToken);
+        logger.LogInformation("Listening on test.jobs");
 
-            await Task.Delay(1000, stoppingToken);
-        }
+        await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 }
