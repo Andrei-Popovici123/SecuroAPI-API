@@ -1,3 +1,3 @@
 ﻿namespace SecuroAPI.Contracts.Events;
 
-public record TestJobMessage(string TargetUrl);
+public record TestJobMessage(Guid ApiId, string TargetUrl);

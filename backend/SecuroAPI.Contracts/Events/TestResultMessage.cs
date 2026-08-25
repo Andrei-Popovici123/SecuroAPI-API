@@ -1,3 +1,3 @@
 ﻿namespace SecuroAPI.Contracts.Events;
 
-public record TestResultMessage(string TargetUrl);
+public record TestResultMessage(Guid APIID, string TargetUrl, string Output);

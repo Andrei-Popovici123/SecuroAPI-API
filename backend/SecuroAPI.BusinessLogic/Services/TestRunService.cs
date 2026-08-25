@@ -33,11 +33,10 @@ public class TestRunService : ITestRunService
         _monitoringRegisterPublisher = monitoringRegisterPublisher;
     }
     
-    public async Task<Result<TestRunDto>>RunTests()
+    public async Task<Result<TestRunDto>>RunTests(Guid APIID)
     {
-        // var userId = _userService.UserId;
-        // var api = await _apiRegistryRepository.GetByIdAsync(APIID);
-        //
+        var userId = _userService.UserId;
+       var api = await _apiRegistryRepository.GetByIdAsync(APIID);
         // if (api == null)
         // {
         //     return Result<TestRunDto>.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{APIID}' does not exist"));
@@ -54,7 +53,7 @@ public class TestRunService : ITestRunService
         // }
         // return new Result<TestRunDto>();
 
-        await _publisher.PublishAsync(new TestJobMessage("https://x"));
+        await _publisher.PublishAsync(new TestJobMessage(APIID,"https://x"));
         await _monitoringRegisterPublisher.PublishAsync(new RegisterMonitoringMessage("https://x"));
         return  Result<TestRunDto>.Success(new TestRunDto());
     }

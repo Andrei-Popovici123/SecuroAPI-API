@@ -15,11 +15,11 @@ public class TestRunController : BaseFunctionalController
     {
         _testRunService = testRunService;
     }
-    [HttpPost("publish")]
-    public async Task<ActionResult<TestRunDto>> Post([FromBody] TestRunDto testRunDto)
+    [HttpPost("publish/{id:guid}")]
+    public async Task<ActionResult<TestRunDto>> Post(Guid id)
     {
-       await _testRunService.RunTests();
-        return Ok(testRunDto);
+       await _testRunService.RunTests(id);
+        return Ok();
     }
 }
 

@@ -10,13 +10,7 @@ public class Worker(ILogger<Worker> logger, TestResultPublisher testResultPublis
  
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        await consumer.StartJobAsync(stoppingToken);
-        await Task.Delay(10000, stoppingToken);
-        await testResultPublisher.PublishAsync(
-            new TestResultMessage("Ia ni ca merge"),
-            stoppingToken);
-        
+    { 
         
 
         while (!stoppingToken.IsCancellationRequested)

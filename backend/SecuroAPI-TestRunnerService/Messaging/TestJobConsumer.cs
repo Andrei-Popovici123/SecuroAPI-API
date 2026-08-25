@@ -21,9 +21,12 @@ public class TestJobConsumer
     public async Task StartJobAsync(CancellationToken cancellationToken)
     {
         var channel = await _connection.CreateChannelAsync(cancellationToken);
+        
         await channel.QueueDeclareAsync("test.jobs", durable: true, exclusive: false, autoDelete: false,
             arguments: null, cancellationToken: cancellationToken);
+        
         var consumer = new AsyncEventingBasicConsumer(channel);
+        
         consumer.ReceivedAsync += async (_, ea) =>
         {
             var json = Encoding.UTF8.GetString(ea.Body.ToArray());
@@ -33,7 +36,8 @@ public class TestJobConsumer
 
             await channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
         };
-        await channel.BasicConsumeAsync("test.jobs", autoAck: false, 
+        
+        await channel.BasicConsumeAsync("test.jobs", autoAck: false,
             consumer, cancellationToken: cancellationToken);
     }
 }
