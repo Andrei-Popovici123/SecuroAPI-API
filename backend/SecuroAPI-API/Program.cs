@@ -88,12 +88,14 @@ builder.Services.AddSingleton<RabbitMqConnection>();
 builder.Services.AddHostedService<TestResultConsumer>();
 builder.Services.AddHostedService<MonitoringResultConsumer>();
 // Service and Repositories
+builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
 builder.Services.AddScoped<IAPIRegistryRepository, APIRegistryRepository>();
 builder.Services.AddScoped<IAnomalyLogRepository, AnomalyLogRepository>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IScoreReportRepository, ScoreReportRepository>();
 builder.Services.AddScoped<ITestConfigRepository, TestConfigRepository>();
+builder.Services.AddScoped<ITestJobRepository, TestJobRepository>();
 
 builder.Services.AddScoped<IAPIRegistryService, APIRegistryService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -114,8 +116,6 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SecuroAPIDbContext>();
     db.Database.Migrate();
 }
-//Middleware Identity
-app.MapGroup("api/defaultAuth").MapIdentityApi<ApplicationUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -13,6 +13,7 @@ public readonly record struct Result
     public static Result Failure(params Error[] errors) => new(false, errors);
     public static Result NotFound(params Error[] errors) => new(false, errors);
     public static Result BadRequest(params Error[] errors) => new(false, errors);
+    public static Result Forbidden(params Error[] errors) => new(false, errors);
 
     public static Result Combine(params Result[] results)
         => results.Any(r => !r.IsSuccess)
@@ -42,6 +43,7 @@ public readonly record struct Result<T>
 
     public static Result<T> BadRequest() => new(false, default, []);
     public static Result<T> BadRequest(params Error[] errors) => new(false, default, errors);
+    public static Result<T> Forbidden(params Error[] errors) => new(false, default, errors);
 
 
     public Result<K> Map<K>(Func<T, K> map)

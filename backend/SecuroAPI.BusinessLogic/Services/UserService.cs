@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
@@ -18,16 +19,18 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace SecuroAPI.BusinessLogic.Services;
 
+
 public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IOptions<JwtSettings> _jwtOptions;
     private readonly IHttpContextAccessor _httpContextAccessor;
     
+    //this might be fix, gotta check if it broke something
     public string UserId => _httpContextAccessor?
         .HttpContext?
-        .User
-        .FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? String.Empty;
+        .User?
+        .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? String.Empty;
 
     public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor)
     {
@@ -91,6 +94,46 @@ public class UserService : IUserService
         return Result<string>.Success(token);
     }
 
+    public async Task<Result<UserStatus>> GetStatusAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return Result<UserStatus>.NotFound(new Error(ErrorCodes.NotFound, $"User '{userId}' not found"));
+
+        return Result<UserStatus>.Success(user.Status);
+    }
+
+    public async Task<Result<GetRegisteredUserDTO>> GetByIdAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return Result<GetRegisteredUserDTO>.NotFound(new Error(ErrorCodes.NotFound, $"User '{userId}' not found"));
+
+        var userDto = new GetRegisteredUserDTO
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Status = user.Status.ToString()
+        };
+        return Result<GetRegisteredUserDTO>.Success(userDto);
+    }
+
+    public async Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUsersAsync()
+    {
+        var users = await _userManager.Users.ToListAsync();
+
+        var usersDto = users.Select(user => new GetRegisteredUserDTO
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Status = user.Status.ToString()
+        });
+        return Result<IEnumerable<GetRegisteredUserDTO>>.Success(usersDto);
+    }
     private async Task<string> GenerateToken(ApplicationUser user)
     {
         //basic user claims

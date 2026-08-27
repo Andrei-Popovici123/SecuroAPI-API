@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SecuroAPI.DataAccess;
 
@@ -11,9 +12,11 @@ using SecuroAPI.DataAccess;
 namespace SecuroAPI.DataAccess.Migrations
 {
     [DbContext(typeof(SecuroAPIDbContext))]
-    partial class SecuroAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260827191742_NewTestJobEntityfix")]
+    partial class NewTestJobEntityfix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -445,10 +448,6 @@ namespace SecuroAPI.DataAccess.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("JobId");
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SecuroAPI.DataAccess;
 
@@ -11,9 +12,11 @@ using SecuroAPI.DataAccess;
 namespace SecuroAPI.DataAccess.Migrations
 {
     [DbContext(typeof(SecuroAPIDbContext))]
-    partial class SecuroAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260827164508_NewTestJobEntity")]
+    partial class NewTestJobEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -434,6 +437,9 @@ namespace SecuroAPI.DataAccess.Migrations
                     b.Property<Guid>("APIID")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("ApiRegistryAPIID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -446,13 +452,13 @@ namespace SecuroAPI.DataAccess.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("JobId");
 
-                    b.HasIndex("APIID");
+                    b.HasIndex("APIID")
+                        .IsUnique()
+                        .HasFilter("[Status] IN (1, 2)");
+
+                    b.HasIndex("ApiRegistryAPIID");
 
                     b.ToTable("TestJobs");
                 });
@@ -567,9 +573,9 @@ namespace SecuroAPI.DataAccess.Migrations
             modelBuilder.Entity("SecuroAPI.DataAccess.Entities.TestJob", b =>
                 {
                     b.HasOne("SecuroAPI.DataAccess.Entities.APIRegistry", "ApiRegistry")
-                        .WithMany("TestJobs")
-                        .HasForeignKey("APIID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany()
+                        .HasForeignKey("ApiRegistryAPIID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ApiRegistry");
@@ -582,8 +588,6 @@ namespace SecuroAPI.DataAccess.Migrations
                     b.Navigation("Ratings");
 
                     b.Navigation("TestConfig");
-
-                    b.Navigation("TestJobs");
                 });
 
             modelBuilder.Entity("SecuroAPI.DataAccess.Entities.ApplicationUser", b =>

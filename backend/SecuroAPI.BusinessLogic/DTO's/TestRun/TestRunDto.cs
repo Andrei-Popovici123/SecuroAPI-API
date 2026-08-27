@@ -1,6 +1,6 @@
 ﻿using SecuroAPI.BusinessLogic.DTO_s.ScoreReport;
 
-namespace SecuroAPI.BusinessLogic.DTO_s.Rating;
+namespace SecuroAPI.BusinessLogic.DTO_s.TestRun;
 
 public class TestRunDto
 {

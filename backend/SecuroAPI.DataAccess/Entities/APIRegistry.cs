@@ -22,4 +22,5 @@ public class APIRegistry
     public TestConfig? TestConfig { get; set; }
     public ICollection<Rating> Ratings { get; set; } = new HashSet<Rating>();
     public ICollection<AnomalyLog> AnomalyLogs { get; set; } = new HashSet<AnomalyLog>();
+    public ICollection<TestJob> TestJobs { get; set; } = new HashSet<TestJob>();
 }

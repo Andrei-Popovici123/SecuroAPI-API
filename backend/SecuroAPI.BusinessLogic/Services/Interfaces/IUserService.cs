@@ -10,6 +10,10 @@ public interface IUserService
     string UserId { get; }
     Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role,
         UserStatus status);
+    
+    Task<Result<UserStatus>> GetStatusAsync(string userId);
+    Task<Result<GetRegisteredUserDTO>> GetByIdAsync(string userId);
+    Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUsersAsync();
 
     Task<Result<string>> LoginUserAsync(LoginUserDTO loginUserDto);
 }
