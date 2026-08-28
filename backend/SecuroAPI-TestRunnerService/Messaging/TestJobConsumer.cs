@@ -17,6 +17,7 @@ public class TestJobConsumer
     private readonly TestResultPublisher _publisher;
     private IChannel? _channel;
     private const int MaxConcurrent = 3;
+    private const int ScanTimeoutInMinutes = 1;
     private readonly SemaphoreSlim _slots = new(MaxConcurrent, MaxConcurrent);
 
     public TestJobConsumer(RabbitMqConnection connection, ILogger<TestJobConsumer> logger,
@@ -70,7 +71,11 @@ public class TestJobConsumer
                 new TestJobStatusMessage(job.JobId, JobStatus.Running, DateTime.UtcNow),
                 ea.CancellationToken);
 
-            var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, ea.CancellationToken);
+            //Job Timeout Currently set to 5 minutes
+            using var scanCts = CancellationTokenSource.CreateLinkedTokenSource(ea.CancellationToken);
+            scanCts.CancelAfter(TimeSpan.FromMinutes(ScanTimeoutInMinutes));
+            
+            var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, scanCts.Token);
 
             await _publisher.PublishAsync(new TestResultMessage(job.JobId, job.APIID, exitCode, stdout));
 
