@@ -12,7 +12,7 @@ using SecuroAPI.DataAccess.Repositories.Interfaces;
 
 namespace SecuroAPI.BusinessLogic.Services;
 
-public class TestRunService : ITestRunService
+public class TestJobService : ITestJobService
 {
     private readonly ITestConfigRepository _configRepository;
     private readonly IRatingRepository _ratingRepository;
@@ -23,7 +23,7 @@ public class TestRunService : ITestRunService
     private readonly ITestJobRepository _jobRepository;
     private static readonly TimeSpan ScanJobCooldown = TimeSpan.FromSeconds(120);
 
-    public TestRunService(ITestConfigRepository configRepository, IRatingRepository ratingRepository,
+    public TestJobService(ITestConfigRepository configRepository, IRatingRepository ratingRepository,
         IAPIRegistryRepository apiRegistryRepository, IUserService userService,
         IScoreReportRepository apiScoreReportRepository, ITestJobPublisher publisher,
         ITestJobRepository jobRepository)
@@ -36,6 +36,7 @@ public class TestRunService : ITestRunService
         _publisher = publisher;
         _jobRepository = jobRepository;
     }
+
 //possible race condition for a double request. Will be investigated at another time
     public async Task<Result<TestRunTriggeredDto>> RunTests(Guid apiId)
     {
@@ -55,6 +56,7 @@ public class TestRunService : ITestRunService
 
         return await QueueJobAsync(api, configResult.Value!);
     }
+
 
     private async Task<Result<APIRegistry>> AuthorizeScanAsync(Guid apiId)
     {
@@ -96,8 +98,8 @@ public class TestRunService : ITestRunService
         if (latestJob.Status is JobStatus.Queued or JobStatus.Running)
             return Result.BadRequest(new Error(ErrorCodes.BadRequest,
                 $"A scan is already {latestJob.Status} for this API"));
-        
-        
+
+
         var timeElapsedSinceLastJob = DateTime.UtcNow - (latestJob.FinishedAt ?? latestJob.CreatedAt);
         if (timeElapsedSinceLastJob < ScanJobCooldown && latestJob.Status == JobStatus.Completed)
             return Result.BadRequest(new Error(ErrorCodes.BadRequest,
@@ -118,7 +120,7 @@ public class TestRunService : ITestRunService
             Status = JobStatus.Queued,
             CreatedAt = DateTime.UtcNow
         });
-        
+
         try
         {
             await _publisher.PublishAsync(
@@ -133,11 +135,31 @@ public class TestRunService : ITestRunService
             return Result<TestRunTriggeredDto>.Failure(
                 new Error(ErrorCodes.Failure, "Failed to queue scan; please retry"));
         }
+
         return Result<TestRunTriggeredDto>.Success(new TestRunTriggeredDto
         {
             JobId = jobId,
             APIID = api.APIID,
             JobStatus = JobStatus.Queued.ToString()
         });
+    }
+
+    public async Task<Result> ApplyStatusAsync(Guid jobId, JobStatus status, DateTime occurredAt)
+    {
+        var job = await _jobRepository.GetByIdAsync(jobId);
+
+        if (job is null)
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Job '{jobId}' does not exist"));
+
+        if (job.Status is JobStatus.Completed or JobStatus.Failed)
+            return Result.BadRequest(new Error(ErrorCodes.Conflict, $"Job '{jobId}' is already {job.Status}"));
+
+        job.Status = status;
+
+        if (status is JobStatus.Completed or JobStatus.Failed)
+            job.FinishedAt = occurredAt;
+
+        await _jobRepository.UpdateAsync(job);
+        return Result.Success();
     }
 }

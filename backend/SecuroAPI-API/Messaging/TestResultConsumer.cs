@@ -2,6 +2,7 @@
 using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Contracts.Connection;
 using SecuroAPI.Contracts.Events;
 
@@ -11,34 +12,80 @@ public class TestResultConsumer : BackgroundService
 {
     private readonly RabbitMqConnection _connection;
     private readonly ILogger<TestResultConsumer> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
     private IChannel? _channel;
-    
-    public TestResultConsumer(RabbitMqConnection connection, ILogger<TestResultConsumer> logger)
+
+    public TestResultConsumer(RabbitMqConnection connection, ILogger<TestResultConsumer> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _connection = connection;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-    { 
+    {
         _channel = await _connection.CreateChannelAsync(cancellationToken);
+
         await _channel.QueueDeclareAsync("test.results", durable: true, exclusive: false, autoDelete: false,
             arguments: null, cancellationToken: cancellationToken);
+
+        await _channel.BasicQosAsync(0, prefetchCount: 5, global: false, cancellationToken);
+
         var consumer = new AsyncEventingBasicConsumer(_channel);
+
         consumer.ReceivedAsync += async (_, ea) =>
         {
-            var json = Encoding.UTF8.GetString(ea.Body.ToArray());
-            var testResultMessage = JsonSerializer.Deserialize<TestResultMessage>(json);
+            var json = Encoding.UTF8.GetString(ea.Body.Span);
 
-            _logger.LogInformation("Test results for: {APIID}: {ExitCode}, {Output}", testResultMessage?.APIID,testResultMessage?.ExitCode,testResultMessage?.Output);
+            try
+            {
+                var msg = JsonSerializer.Deserialize<RunnerMessage>(json);
+                switch (msg)
+                {
+                    case TestJobStatusMessage s:
+                        await HandleStatusAsync(s, cancellationToken);
+                        break;
 
-            // TODO(persistence): open a scope here, resolve a scoped service, save the result
-            // so the user can retrieve it later. This is where IServiceScopeFactory + DbContext
-            // come in — deferred until the API actually stores results.
-            
-            await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+                    case TestResultMessage r:
+                        await HandleResultAsync(r, cancellationToken);
+                        break;
+
+                    default:
+                        _logger.LogWarning("Unknown runner message: {Json}", json);
+                        break;
+                }
+
+                await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false);
+            }
+
+
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Result message failed: {Json}", json);
+                await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
+            }
         };
-        await _channel.BasicConsumeAsync("test.results", autoAck: false, 
+        await _channel.BasicConsumeAsync("test.results", autoAck: false,
             consumer, cancellationToken: cancellationToken);
+    }
+
+    private async Task HandleResultAsync(TestResultMessage testResultMessage, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task HandleStatusAsync(TestJobStatusMessage testJobStatusMessage,
+        CancellationToken cancellationToken)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var jobService = scope.ServiceProvider.GetRequiredService<ITestJobService>();
+
+        var result = await jobService.ApplyStatusAsync(testJobStatusMessage.JobId, testJobStatusMessage.Status,
+            testJobStatusMessage.OccurredAt);
+        if (!result.IsSuccess)
+            _logger.LogWarning("Status {Status} for job {JobId} not applied: {Error}",
+                testJobStatusMessage.Status, testJobStatusMessage.JobId,
+                result.Errors.FirstOrDefault().Description);
     }
 }

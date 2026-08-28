@@ -87,6 +87,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<RabbitMqConnection>();
 builder.Services.AddHostedService<TestResultConsumer>();
 builder.Services.AddHostedService<MonitoringResultConsumer>();
+builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
+builder.Services.AddSingleton<IMonitoringRegisterPublisher,MonitoringRegisterPublisher>();
+
 // Service and Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
@@ -105,10 +108,9 @@ builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IScoreReportService, ScoreReportService>();
 builder.Services.AddScoped<ITestConfigService, TestConfigService>();
 builder.Services.AddScoped<IAdministrationService, AdministrationService>();
-builder.Services.AddScoped<ITestRunService, TestRunService>();
+builder.Services.AddScoped<ITestJobService, TestJobService>();
 
-builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
-builder.Services.AddSingleton<IMonitoringRegisterPublisher,MonitoringRegisterPublisher>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

@@ -8,18 +8,18 @@ namespace SecuroAPI_API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TestRunController : BaseFunctionalController
+public class TestJobController : BaseFunctionalController
 {
-    private readonly ITestRunService _testRunService;
+    private readonly ITestJobService _testJobService;
 
-    public TestRunController(ITestRunService testRunService)
+    public TestJobController(ITestJobService testJobService)
     {
-        _testRunService = testRunService;
+        _testJobService = testJobService;
     }
     [HttpPost("publish/{id:guid}")]
     public async Task<ActionResult<TestRunTriggeredDto>> Post(Guid id)
     {
-       var testStatus=await _testRunService.RunTests(id);
+       var testStatus=await _testJobService.RunTests(id);
         return ToActionResult(testStatus);
     }
 }
