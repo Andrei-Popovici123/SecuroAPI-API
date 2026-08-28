@@ -21,6 +21,9 @@ public class DockerContainerRunner : IContainerRunner
 
             HostConfig = new HostConfig
             {
+                Memory     = 256L * 1024 * 1024,
+                NanoCPUs   = 500_000_000,
+                PidsLimit  = 64,
                 AutoRemove = false
             }
         }, ct);

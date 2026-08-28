@@ -1,6 +1,5 @@
 ﻿
 
-using SecuroAPI.Contracts.Commands;
 using SecuroAPI.Contracts.Events;
 
 namespace SecuroAPI.BusinessLogic.Services.Publisher;

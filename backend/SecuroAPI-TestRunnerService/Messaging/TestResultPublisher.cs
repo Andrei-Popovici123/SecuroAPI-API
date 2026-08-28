@@ -8,13 +8,15 @@ namespace SecuroAPI_TestRunnerService.Messaging;
 public class TestResultPublisher
 {
     private readonly RabbitMqConnection _connection;
+    private readonly ILogger<TestResultPublisher> _logger;
 
-    public TestResultPublisher(RabbitMqConnection connection)
+    public TestResultPublisher(RabbitMqConnection connection, ILogger<TestResultPublisher> logger)
     {
         _connection = connection;
+        _logger = logger;
     }
 
-    public async Task PublishAsync(TestResultMessage message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(RunnerMessage message, CancellationToken cancellationToken = default)
     {
        await using var channel=await _connection.CreateChannelAsync(cancellationToken);
 
@@ -31,5 +33,8 @@ public class TestResultPublisher
         body : body,
         cancellationToken: cancellationToken
             );
+        
+        _logger.LogInformation("Published {Type} for job {JobId}",
+            message.GetType().Name, message.JobId);
     }
 }

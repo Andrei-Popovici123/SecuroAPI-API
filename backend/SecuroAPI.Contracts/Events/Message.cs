@@ -1,13 +1,10 @@
-﻿using MediatR;
+﻿
+
+using System.Text.Json.Serialization;
 
 namespace SecuroAPI.Contracts.Events;
 
-public record Message : IRequest<bool>
-{
-    public string MessageType {get; protected set;}
-
-    protected Message()
-    {
-        MessageType = GetType().Name;
-    }
-}
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
+[JsonDerivedType(typeof(TestJobStatusMessage), "status")]
+[JsonDerivedType(typeof(TestResultMessage), "result")]
+public record RunnerMessage(Guid JobId);

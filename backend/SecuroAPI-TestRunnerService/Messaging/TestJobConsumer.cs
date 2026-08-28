@@ -3,6 +3,7 @@ using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using SecuroAPI_TestRunnerService.Logic.Interfaces;
+using SecuroAPI.Common.Enums;
 using SecuroAPI.Contracts.Connection;
 using SecuroAPI.Contracts.Events;
 
@@ -15,6 +16,8 @@ public class TestJobConsumer
     private readonly ILogger<TestJobConsumer> _logger;
     private readonly TestResultPublisher _publisher;
     private IChannel? _channel;
+    private const int MaxConcurrent = 3;
+    private readonly SemaphoreSlim _slots = new(MaxConcurrent, MaxConcurrent);
 
     public TestJobConsumer(RabbitMqConnection connection, ILogger<TestJobConsumer> logger,
         TestResultPublisher publisher, IContainerRunner containerRunner)
@@ -32,7 +35,7 @@ public class TestJobConsumer
         await _channel.QueueDeclareAsync("test.jobs", durable: true, exclusive: false, autoDelete: false,
             arguments: null, cancellationToken: cancellationToken);
 
-        await _channel.BasicQosAsync(0, prefetchCount: 1, global: false, cancellationToken);
+        await _channel.BasicQosAsync(0, prefetchCount: MaxConcurrent, global: false, cancellationToken);
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
         consumer.ReceivedAsync += OnMessageAsync;
@@ -42,17 +45,35 @@ public class TestJobConsumer
     private async Task OnMessageAsync(object sender, BasicDeliverEventArgs ea)
     {
         var json = Encoding.UTF8.GetString(ea.Body.Span);
+
+        try
+        {
+            await _slots.WaitAsync(ea.CancellationToken);
+        }
+        // consumer shut down while waiting for a slot — never processed,
+        // so no ack/nack: Rabbit requeues on channel close
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         try
         {
             var job = JsonSerializer.Deserialize<TestJobMessage>(json);
-            _logger.LogInformation("Received job for {APIID} -> {TargetUrl}", job?.APIID, job?.TargetUrl);
 
-            if (job != null)
-            {
-                var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, ea.CancellationToken);
+            if (job is null)
+                throw new JsonException("Null TestJobMessage");
+            _logger.LogInformation("Received job {JobId} for {APIID} -> {TargetUrl}",
+                job.JobId, job.APIID, job.TargetUrl);
 
-                await _publisher.PublishAsync(new TestResultMessage(job.APIID, exitCode, stdout));
-            }
+            await _publisher.PublishAsync(
+                new TestJobStatusMessage(job.JobId, JobStatus.Running, DateTime.UtcNow),
+                ea.CancellationToken);
+
+            var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, ea.CancellationToken);
+
+            await _publisher.PublishAsync(new TestResultMessage(job.JobId, job.APIID, exitCode, stdout));
+
 
             await _channel!.BasicAckAsync(ea.DeliveryTag, multiple: false);
         }
@@ -60,6 +81,10 @@ public class TestJobConsumer
         {
             _logger.LogError(ex, "Job failed: {Json}", json);
             await _channel!.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
+        }
+        finally
+        {
+            _slots.Release();
         }
     }
 }
