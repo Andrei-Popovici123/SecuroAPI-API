@@ -89,6 +89,7 @@ builder.Services.AddHostedService<TestResultConsumer>();
 builder.Services.AddHostedService<MonitoringResultConsumer>();
 builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
 builder.Services.AddSingleton<IMonitoringRegisterPublisher,MonitoringRegisterPublisher>();
+builder.Services.AddHostedService<StuckJobClearer>();
 
 // Service and Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));

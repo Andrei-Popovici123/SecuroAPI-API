@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using SecuroAPI.BusinessLogic.DTO_s.Rating;
 using SecuroAPI.BusinessLogic.DTO_s.TestRun;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -21,12 +22,13 @@ public class TestJobService : ITestJobService
     private readonly IUserService _userService;
     private readonly ITestJobPublisher _publisher;
     private readonly ITestJobRepository _jobRepository;
+    private readonly ILogger<TestJobService> _logger;
     private static readonly TimeSpan ScanJobCooldown = TimeSpan.FromSeconds(120);
 
     public TestJobService(ITestConfigRepository configRepository, IRatingRepository ratingRepository,
         IAPIRegistryRepository apiRegistryRepository, IUserService userService,
         IScoreReportRepository apiScoreReportRepository, ITestJobPublisher publisher,
-        ITestJobRepository jobRepository)
+        ITestJobRepository jobRepository, ILogger<TestJobService> logger)
     {
         _configRepository = configRepository;
         _ratingRepository = ratingRepository;
@@ -35,6 +37,7 @@ public class TestJobService : ITestJobService
         _apiScoreReportRepository = apiScoreReportRepository;
         _publisher = publisher;
         _jobRepository = jobRepository;
+        _logger = logger;
     }
 
 //possible race condition for a double request. Will be investigated at another time
@@ -161,5 +164,27 @@ public class TestJobService : ITestJobService
 
         await _jobRepository.UpdateAsync(job);
         return Result.Success();
+    }
+    
+    public async Task<Result<int>> ClearStuckJobsAsync(TimeSpan stuckAfter)
+    {
+        var cutoff = DateTime.UtcNow - stuckAfter;
+
+        var stale = await _jobRepository.GetAllAsync(j =>
+            (j.Status == JobStatus.Running || j.Status == JobStatus.Queued)
+            && j.CreatedAt < cutoff);
+
+        var cleared = 0;
+        foreach (var job in stale)
+        {
+            var result = await ApplyStatusAsync(job.JobId, JobStatus.Failed, DateTime.UtcNow);
+            if (result.IsSuccess)
+            {
+                cleared++;
+                _logger.LogWarning("Job {JobId} stale since {CreatedAt} → Failed", job.JobId, job.CreatedAt);
+            }
+        }
+
+        return Result<int>.Success(cleared);
     }
 }
