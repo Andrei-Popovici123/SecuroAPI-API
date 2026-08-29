@@ -20,26 +20,10 @@ public class DockerContainerRunner : IContainerRunner
 
     public async Task<(int ExitCode, string Stdout)> RunAsync(string targetUrl, CancellationToken ct)
     {
-        var create = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
-        {
-            Image = Image,
-            Env = new List<string> { $"TARGET_URL={targetUrl}" },
-
-            HostConfig = new HostConfig
-            {
-                Memory = 256L * 1024 * 1024,
-                NanoCPUs = 500_000_000,
-                PidsLimit = 64,
-                AutoRemove = false
-            }
-        }, ct);
-
-        var id = create.ID;
+        var id = await CreateContainerAsync(targetUrl, ct);
 
         try
         {
-            await _dockerClient.Containers.StartContainerAsync(id, null, ct);
-
             var wait = await _dockerClient.Containers.WaitContainerAsync(id, ct);
 
             using var logs = await _dockerClient.Containers.GetContainerLogsAsync(id,
@@ -54,7 +38,7 @@ public class DockerContainerRunner : IContainerRunner
 
             return ((int)wait.StatusCode, stdout);
         }
-        catch (OperationCanceledException) 
+        catch (OperationCanceledException)
         {
             await KillJobAsync(id);
             throw;
@@ -62,6 +46,43 @@ public class DockerContainerRunner : IContainerRunner
         finally
         {
             await RemoveJobAsync(id);
+        }
+    }
+
+    private async Task<string> CreateContainerAsync(string targetUrl, CancellationToken ct)
+    {
+        const int maxAttempts = 3;
+
+        for (var attempt = 1; ; attempt++)
+        {
+            string? id = null;
+            try
+            {
+                var create = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
+                {
+                    Image = Image,
+                    Env = new List<string> { $"TARGET_URL={targetUrl}" },
+
+                    HostConfig = new HostConfig
+                    {
+                        Memory = 256L * 1024 * 1024,
+                        NanoCPUs = 500_000_000,
+                        PidsLimit = 64,
+                        AutoRemove = false
+                    }
+                }, ct);
+
+                id = create.ID;
+                
+                await _dockerClient.Containers.StartContainerAsync(id, null, ct);
+                return id;
+            }
+            catch (DockerApiException e) when (attempt < maxAttempts)
+            {
+                if (id is not null) await RemoveJobAsync(id);
+                _logger.LogWarning(e, "Container start attempt {Attempt} failed, retrying", attempt);
+                await Task.Delay(TimeSpan.FromSeconds(2 * attempt), ct);
+            }
         }
     }
 

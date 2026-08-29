@@ -57,13 +57,16 @@ public class TestJobConsumer
         {
             return;
         }
-
+        Guid? jobId = null;
         try
         {
             var job = JsonSerializer.Deserialize<TestJobMessage>(json);
 
             if (job is null)
                 throw new JsonException("Null TestJobMessage");
+            
+            jobId = job.JobId;
+            
             _logger.LogInformation("Received job {JobId} for {APIID} -> {TargetUrl}",
                 job.JobId, job.APIID, job.TargetUrl);
 
@@ -77,19 +80,45 @@ public class TestJobConsumer
             
             var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, scanCts.Token);
 
-            await _publisher.PublishAsync(new TestResultMessage(job.JobId, job.APIID, exitCode, stdout));
+            await _publisher.PublishAsync(new TestResultMessage(job.JobId, job.APIID, exitCode, stdout),ea.CancellationToken);
 
 
             await _channel!.BasicAckAsync(ea.DeliveryTag, multiple: false);
         }
+        catch (OperationCanceledException) when (ea.CancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Shutdown during job {JobId}", jobId);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Job {JobId} timed out after {Minutes}m", jobId, ScanTimeoutInMinutes);
+            await PublishFailedAsync(jobId, $"Scan exceeded {ScanTimeoutInMinutes} minute timeout");
+            await _channel!.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Job failed: {Json}", json);
+            await PublishFailedAsync(jobId, ex.Message);
             await _channel!.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: false);
         }
         finally
         {
             _slots.Release();
+        }
+    }
+
+    private async Task PublishFailedAsync(Guid? jobId, string error)
+    {
+        if (jobId is null) return;
+
+        try
+        {
+            await _publisher.PublishAsync(
+                new TestJobStatusMessage(jobId.Value, JobStatus.Failed, DateTime.UtcNow, error));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not publish Failed for {JobId}", jobId);
         }
     }
 }
