@@ -147,25 +147,26 @@ public class TestJobService : ITestJobService
         });
     }
 
-    public async Task<Result> ApplyStatusAsync(Guid jobId, JobStatus status, DateTime occurredAt)
+    public async Task<Result> ApplyStatusAsync(JobStatusDto jobStatusDto)
     {
-        var job = await _jobRepository.GetByIdAsync(jobId);
+        var job = await _jobRepository.GetByIdAsync(jobStatusDto.JobId);
 
         if (job is null)
-            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Job '{jobId}' does not exist"));
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Job '{jobStatusDto.JobId}' does not exist"));
 
         if (job.Status is JobStatus.Completed or JobStatus.Failed)
-            return Result.BadRequest(new Error(ErrorCodes.Conflict, $"Job '{jobId}' is already {job.Status}"));
+            return Result.BadRequest(new Error(ErrorCodes.Conflict,
+                $"Job '{jobStatusDto.JobId}' is already {job.Status}"));
 
-        job.Status = status;
+        job.Status = jobStatusDto.Status;
 
-        if (status is JobStatus.Completed or JobStatus.Failed)
-            job.FinishedAt = occurredAt;
+        if (jobStatusDto.Status is JobStatus.Completed or JobStatus.Failed)
+            job.FinishedAt = jobStatusDto.OccurredAt;
 
         await _jobRepository.UpdateAsync(job);
         return Result.Success();
     }
-    
+
     public async Task<Result<int>> ClearStuckJobsAsync(TimeSpan stuckAfter)
     {
         var cutoff = DateTime.UtcNow - stuckAfter;
@@ -177,14 +178,19 @@ public class TestJobService : ITestJobService
         var cleared = 0;
         foreach (var job in stale)
         {
-            var result = await ApplyStatusAsync(job.JobId, JobStatus.Failed, DateTime.UtcNow);
+            var result = await ApplyStatusAsync(new JobStatusDto(job.JobId, JobStatus.Failed, DateTime.UtcNow,"Job Timed out"));
             if (result.IsSuccess)
             {
                 cleared++;
-                _logger.LogWarning("Job {JobId} stale since {CreatedAt} → Failed", job.JobId, job.CreatedAt);
+                _logger.LogWarning("Job {JobId} stuck since {CreatedAt} → Failed", job.JobId, job.CreatedAt);
             }
         }
 
         return Result<int>.Success(cleared);
+    }
+
+    public Task<Result> PersistResultAsync(JobResultDto jobResultDto)
+    {
+        throw new NotImplementedException();
     }
 }

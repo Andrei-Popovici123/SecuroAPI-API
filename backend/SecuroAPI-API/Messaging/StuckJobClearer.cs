@@ -5,7 +5,7 @@ namespace SecuroAPI_API.Messaging;
 public class StuckJobClearer : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(2);
-    private static readonly TimeSpan StuckAfter = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan StuckAfter = TimeSpan.FromMinutes(1);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<StuckJobClearer> _logger;

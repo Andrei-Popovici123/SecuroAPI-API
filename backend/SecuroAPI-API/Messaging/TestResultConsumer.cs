@@ -2,6 +2,7 @@
 using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using SecuroAPI.BusinessLogic.DTO_s.TestRun;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Contracts.Connection;
 using SecuroAPI.Contracts.Events;
@@ -72,7 +73,14 @@ public class TestResultConsumer : BackgroundService
 
     private async Task HandleResultAsync(TestResultMessage testResultMessage, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        using var scope = _scopeFactory.CreateScope();
+        var jobService = scope.ServiceProvider.GetRequiredService<ITestJobService>();
+
+        var result = await jobService.PersistResultAsync(new JobResultDto(testResultMessage.JobId,
+            testResultMessage.APIID, testResultMessage.ExitCode, testResultMessage.Output));
+        if (!result.IsSuccess)
+            _logger.LogWarning("Result for job {JobId} not persisted: {Error}",
+                testResultMessage.JobId, result.Errors.FirstOrDefault().Description);
     }
 
     private async Task HandleStatusAsync(TestJobStatusMessage testJobStatusMessage,
@@ -81,8 +89,8 @@ public class TestResultConsumer : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var jobService = scope.ServiceProvider.GetRequiredService<ITestJobService>();
 
-        var result = await jobService.ApplyStatusAsync(testJobStatusMessage.JobId, testJobStatusMessage.Status,
-            testJobStatusMessage.OccurredAt);
+        var result = await jobService.ApplyStatusAsync(new JobStatusDto(testJobStatusMessage.JobId, testJobStatusMessage.Status,
+            testJobStatusMessage.OccurredAt,testJobStatusMessage.Error));
         if (!result.IsSuccess)
             _logger.LogWarning("Status {Status} for job {JobId} not applied: {Error}",
                 testJobStatusMessage.Status, testJobStatusMessage.JobId,

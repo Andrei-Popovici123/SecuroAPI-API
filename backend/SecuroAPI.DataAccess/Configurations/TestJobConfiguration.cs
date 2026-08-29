@@ -14,5 +14,7 @@ public class TestJobConfiguration : IEntityTypeConfiguration<TestJob>
             .WithMany(r=> r.TestJobs) 
             .HasForeignKey(x => x.APIID)
             .OnDelete(DeleteBehavior.Restrict);
+   
+   builder.Property(t => t.FailReason).HasMaxLength(500);
     }
 }

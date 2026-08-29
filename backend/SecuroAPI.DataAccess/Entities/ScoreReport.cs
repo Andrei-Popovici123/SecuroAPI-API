@@ -9,7 +9,8 @@ public class ScoreReport
     public Severity Severity{ get; set; }
 
     public string Summary { get; set; } = string.Empty;
-
+    public string Check { get; set; } = string.Empty;
+    public string? Evidence { get; set; }
     public string Recommendation { get; set; } = String.Empty;
     
     public Guid RatingId { get; set; }

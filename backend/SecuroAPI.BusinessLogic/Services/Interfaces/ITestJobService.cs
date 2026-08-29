@@ -10,8 +10,9 @@ public interface ITestJobService
 {
     Task<Result<TestRunTriggeredDto>> RunTests(Guid APIID);
 
-    Task<Result> ApplyStatusAsync(Guid jobId, JobStatus status, DateTime occurredAt);
+    Task<Result> ApplyStatusAsync(JobStatusDto jobStatusDto);
 
     Task<Result<int>> ClearStuckJobsAsync(TimeSpan stuckAfter);
 
+    Task<Result> PersistResultAsync(JobResultDto jobResultDto);
 }
