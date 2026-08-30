@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using SecuroAPI.BusinessLogic.DTO_s.Rating;
 using SecuroAPI.BusinessLogic.DTO_s.TestRun;
@@ -24,6 +26,12 @@ public class TestJobService : ITestJobService
     private readonly ITestJobRepository _jobRepository;
     private readonly ILogger<TestJobService> _logger;
     private static readonly TimeSpan ScanJobCooldown = TimeSpan.FromSeconds(120);
+
+    private static readonly JsonSerializerOptions ReportOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() }
+    };
 
     public TestJobService(ITestConfigRepository configRepository, IRatingRepository ratingRepository,
         IAPIRegistryRepository apiRegistryRepository, IUserService userService,
@@ -161,7 +169,10 @@ public class TestJobService : ITestJobService
         job.Status = jobStatusDto.Status;
 
         if (jobStatusDto.Status is JobStatus.Completed or JobStatus.Failed)
-            job.FinishedAt = jobStatusDto.OccurredAt;
+        {
+            job.FinishedAt = jobStatusDto.OccurredAt.ToUniversalTime();
+            job.FailReason = jobStatusDto.FailReason;
+        }
 
         await _jobRepository.UpdateAsync(job);
         return Result.Success();
@@ -178,7 +189,8 @@ public class TestJobService : ITestJobService
         var cleared = 0;
         foreach (var job in stale)
         {
-            var result = await ApplyStatusAsync(new JobStatusDto(job.JobId, JobStatus.Failed, DateTime.UtcNow,"Job Timed out"));
+            var result =
+                await ApplyStatusAsync(new JobStatusDto(job.JobId, JobStatus.Failed, DateTime.UtcNow, "Job Timed out"));
             if (result.IsSuccess)
             {
                 cleared++;
@@ -189,8 +201,81 @@ public class TestJobService : ITestJobService
         return Result<int>.Success(cleared);
     }
 
-    public Task<Result> PersistResultAsync(JobResultDto jobResultDto)
+    public async Task<Result> SaveResultAsync(JobResultDto jobResultDto)
     {
-        throw new NotImplementedException();
+        var job = await _jobRepository.GetByIdAsync(jobResultDto.JobId);
+        if (job is null)
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"Job '{jobResultDto.JobId}' does not exist"));
+
+        if (job.Status is JobStatus.Completed or JobStatus.Failed)
+            return Result.BadRequest(new Error(ErrorCodes.Conflict,
+                $"Job '{jobResultDto.JobId}' is already {job.Status}"));
+
+        if (jobResultDto.ExitCode != 0)
+        {
+            _logger.LogWarning("Job {JobId} runner exited {ExitCode}", jobResultDto.JobId, jobResultDto.ExitCode);
+            return await FailJobAsync(jobResultDto.JobId, $"Job exited with code {jobResultDto.ExitCode}");
+        }
+
+        ScanReport? report;
+        try
+        {
+            report = JsonSerializer.Deserialize<ScanReport>(jobResultDto.Output, ReportOptions);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Job {JobId} produced unparseable output", jobResultDto.JobId);
+            return await FailJobAsync(jobResultDto.JobId, "The Job returned an invalid output format");
+        }
+
+        if (report is null)
+            return await FailJobAsync(jobResultDto.JobId, "Runner produced empty output");
+
+        var (vulnerabilityScore, overallScore) = CalculateScore(report.Findings);
+
+        var rating = await _ratingRepository.AddAsync(new Rating
+        {
+            RatingId = Guid.NewGuid(),
+            APIID = jobResultDto.APIID,
+            NumberOfTests = report.ChecksRun.Count,
+            VulnerabilityScore = vulnerabilityScore,
+            OverallScore = overallScore,
+            CreatedAt = DateTime.UtcNow,
+            LastModifiedAt = DateTime.UtcNow
+        });
+
+        foreach (var finding in report.Findings)
+        {
+            await _apiScoreReportRepository.AddAsync(new ScoreReport
+            {
+                ReportId = Guid.NewGuid(),
+                RatingId = rating.RatingId,
+                Severity = finding.Severity,
+                Summary = finding.Summary,
+                Recommendation = finding.Recommendation,
+                FinishedAt = report.FinishedAt.ToUniversalTime(),
+                Check = finding.Check,
+                Evidence = finding.Evidence is null ? null
+                    : $"{finding.Evidence.Url} — {finding.Evidence.Indicator}"
+            });
+        }
+
+        job.RatingId = rating.RatingId;
+        job.Status = JobStatus.Completed;
+        job.FinishedAt = report.FinishedAt.ToUniversalTime();
+        await _jobRepository.UpdateAsync(job);
+
+        _logger.LogInformation("Job {JobId} findings {Findings}, score {Score}",
+            jobResultDto.JobId, report.Findings.Count, overallScore);
+
+        return Result.Success();
     }
+
+    private (int vulnerabilityScore, int overallScore) CalculateScore(IReadOnlyList<ScanFinding> reportFindings)
+    {
+        return (1, 1);
+    }
+
+    private Task<Result> FailJobAsync(Guid jobId, string reason) =>
+        ApplyStatusAsync(new JobStatusDto(jobId, JobStatus.Failed, DateTime.UtcNow, reason));
 }

@@ -76,7 +76,7 @@ public class TestResultConsumer : BackgroundService
         using var scope = _scopeFactory.CreateScope();
         var jobService = scope.ServiceProvider.GetRequiredService<ITestJobService>();
 
-        var result = await jobService.PersistResultAsync(new JobResultDto(testResultMessage.JobId,
+        var result = await jobService.SaveResultAsync(new JobResultDto(testResultMessage.JobId,
             testResultMessage.APIID, testResultMessage.ExitCode, testResultMessage.Output));
         if (!result.IsSuccess)
             _logger.LogWarning("Result for job {JobId} not persisted: {Error}",

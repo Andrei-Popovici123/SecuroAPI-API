@@ -14,5 +14,5 @@ public interface ITestJobService
 
     Task<Result<int>> ClearStuckJobsAsync(TimeSpan stuckAfter);
 
-    Task<Result> PersistResultAsync(JobResultDto jobResultDto);
+    Task<Result> SaveResultAsync(JobResultDto jobResultDto);
 }
