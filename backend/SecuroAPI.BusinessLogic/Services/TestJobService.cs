@@ -1,8 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using SecuroAPI.BusinessLogic.DTO_s.Rating;
 using SecuroAPI.BusinessLogic.DTO_s.TestRun;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.BusinessLogic.Services.Publisher;
@@ -25,7 +23,9 @@ public class TestJobService : ITestJobService
     private readonly ITestJobPublisher _publisher;
     private readonly ITestJobRepository _jobRepository;
     private readonly ILogger<TestJobService> _logger;
+    private readonly IScoringService _scoringService;
     private static readonly TimeSpan ScanJobCooldown = TimeSpan.FromSeconds(120);
+
 
     private static readonly JsonSerializerOptions ReportOptions = new()
     {
@@ -36,7 +36,7 @@ public class TestJobService : ITestJobService
     public TestJobService(ITestConfigRepository configRepository, IRatingRepository ratingRepository,
         IAPIRegistryRepository apiRegistryRepository, IUserService userService,
         IScoreReportRepository apiScoreReportRepository, ITestJobPublisher publisher,
-        ITestJobRepository jobRepository, ILogger<TestJobService> logger)
+        ITestJobRepository jobRepository, ILogger<TestJobService> logger, IScoringService scoringService)
     {
         _configRepository = configRepository;
         _ratingRepository = ratingRepository;
@@ -46,6 +46,7 @@ public class TestJobService : ITestJobService
         _publisher = publisher;
         _jobRepository = jobRepository;
         _logger = logger;
+        _scoringService = scoringService;
     }
 
 //possible race condition for a double request. Will be investigated at another time
@@ -231,15 +232,15 @@ public class TestJobService : ITestJobService
         if (report is null)
             return await FailJobAsync(jobResultDto.JobId, "Runner produced empty output");
 
-        var (vulnerabilityScore, overallScore) = CalculateScore(report.Findings);
+        var score = _scoringService.CalculateScore(report.Findings);
 
         var rating = await _ratingRepository.AddAsync(new Rating
         {
             RatingId = Guid.NewGuid(),
             APIID = jobResultDto.APIID,
             NumberOfTests = report.ChecksRun.Count,
-            VulnerabilityScore = vulnerabilityScore,
-            OverallScore = overallScore,
+            VulnerabilityScore = score.VulnerabilityScore,
+            OverallScore = score.OverallScore,
             CreatedAt = DateTime.UtcNow,
             LastModifiedAt = DateTime.UtcNow
         });
@@ -255,7 +256,8 @@ public class TestJobService : ITestJobService
                 Recommendation = finding.Recommendation,
                 FinishedAt = report.FinishedAt.ToUniversalTime(),
                 Check = finding.Check,
-                Evidence = finding.Evidence is null ? null
+                Evidence = finding.Evidence is null
+                    ? null
                     : $"{finding.Evidence.Url} — {finding.Evidence.Indicator}"
             });
         }
@@ -266,14 +268,9 @@ public class TestJobService : ITestJobService
         await _jobRepository.UpdateAsync(job);
 
         _logger.LogInformation("Job {JobId} findings {Findings}, score {Score}",
-            jobResultDto.JobId, report.Findings.Count, overallScore);
+            jobResultDto.JobId, report.Findings.Count, score.OverallScore);
 
         return Result.Success();
-    }
-
-    private (int vulnerabilityScore, int overallScore) CalculateScore(IReadOnlyList<ScanFinding> reportFindings)
-    {
-        return (1, 1);
     }
 
     private Task<Result> FailJobAsync(Guid jobId, string reason) =>

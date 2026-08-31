@@ -110,6 +110,8 @@ builder.Services.AddScoped<IScoreReportService, ScoreReportService>();
 builder.Services.AddScoped<ITestConfigService, TestConfigService>();
 builder.Services.AddScoped<IAdministrationService, AdministrationService>();
 builder.Services.AddScoped<ITestJobService, TestJobService>();
+builder.Services.AddScoped<ITestJobCrudService, TestJobCrudService>();
+builder.Services.AddScoped<IScoringService, ScoringService>();
 
 
 var app = builder.Build();
