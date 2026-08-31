@@ -19,7 +19,9 @@ using SecuroAPI.DataAccess.Repositories;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 
 
-DotNetEnv.Env.Load();  
+DotNetEnv.Env.Load();
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -42,6 +44,18 @@ builder.Services.AddSwaggerGen(options =>
         [new OpenApiSecuritySchemeReference("bearer", document)] = []
     });
 });
+
+//CORS
+const string CorsPolicy = "SecuroApiCors";
+
+var origins = builder.Configuration
+                  .GetSection("Cors:AllowedOrigins").Get<string[]>()
+              ?? throw new InvalidOperationException("Cors:AllowedOrigins not configured");
+
+builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p => p
+    .WithOrigins(origins)
+    .AllowAnyHeader()
+    .AllowAnyMethod()));
 
 //db context
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
@@ -87,8 +101,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton<RabbitMqConnection>();
 builder.Services.AddHostedService<TestResultConsumer>();
 builder.Services.AddHostedService<MonitoringResultConsumer>();
-builder.Services.AddSingleton<ITestJobPublisher,TestJobPublisher>();
-builder.Services.AddSingleton<IMonitoringRegisterPublisher,MonitoringRegisterPublisher>();
+builder.Services.AddSingleton<ITestJobPublisher, TestJobPublisher>();
+builder.Services.AddSingleton<IMonitoringRegisterPublisher, MonitoringRegisterPublisher>();
 builder.Services.AddHostedService<StuckJobClearer>();
 
 // Service and Repositories
@@ -121,6 +135,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<SecuroAPIDbContext>();
     db.Database.Migrate();
 }
+
+app.UseCors(CorsPolicy);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
