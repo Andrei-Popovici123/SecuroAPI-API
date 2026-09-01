@@ -85,7 +85,10 @@ public class TestJobService : ITestJobService
         if (!userStatus.IsSuccess || userStatus.Value != UserStatus.Approved)
             return Result<APIRegistry>.Forbidden(
                 new Error(ErrorCodes.Forbidden, "Unauthorized to run tests"));
-
+      
+        if (api.VerifiedAt is null)
+            return Result<APIRegistry>.Failure(new Error(ErrorCodes.Forbidden, "Target ownership not verified."));
+       
         if (api.Status != APIStatus.Approved)
             return Result<APIRegistry>.BadRequest(
                 new Error(ErrorCodes.Forbidden, $"API is '{api.Status}'; must be Approved"));

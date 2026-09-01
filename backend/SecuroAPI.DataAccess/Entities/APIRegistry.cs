@@ -18,6 +18,12 @@ public class APIRegistry
     public virtual ApplicationUser User { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public DateTime? LastModifiedAt { get; set; }
+    
+    public string VerificationToken { get; set; } = string.Empty;
+
+    public DateTime? VerifiedAt { get; set; }
+
+    public DateTime? LastVerificationAttemptAt { get; set; }
 
     public TestConfig? TestConfig { get; set; }
     public ICollection<Rating> Ratings { get; set; } = new HashSet<Rating>();

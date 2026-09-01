@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
@@ -6,6 +7,7 @@ using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Common.Constants;
 using SecuroAPI.Common.Enums;
 using SecuroAPI.Common.Results;
+using SecuroAPI.Common.UrlNormalizer;
 using SecuroAPI.DataAccess.Entities;
 using SecuroAPI.DataAccess.Repositories.Interfaces;
 
@@ -14,12 +16,13 @@ namespace SecuroAPI.BusinessLogic.Services;
 public class APIRegistryService : IAPIRegistryService
 {
     private readonly IAPIRegistryRepository _repository;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserService _userService;
 
-    public APIRegistryService(IAPIRegistryRepository repository, IHttpContextAccessor httpContextAccessor)
+    public APIRegistryService(IAPIRegistryRepository repository,
+        IUserService userService)
     {
         _repository = repository;
-        _httpContextAccessor = httpContextAccessor;
+        _userService = userService;
     }
 
     public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesAsync()
@@ -61,12 +64,6 @@ public class APIRegistryService : IAPIRegistryService
 
     public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesByUserID(string id)
     {
-        var userId = _httpContextAccessor?
-            .HttpContext?
-            .User?.
-            FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        
-        
         var registries = await _repository.GetAllByUserId(id);
         var mappedRegistries = registries.Select(r => new APIRegistryDTO
         {
@@ -75,6 +72,7 @@ public class APIRegistryService : IAPIRegistryService
             TargetURL = r.TargetURL,
             AuthType = r.AuthType,
             Status = r.Status.ToString(),
+            VerificationToken = r.VerificationToken,
             CreatedAt = r.CreatedAt,
             LastModifiedAt = r.LastModifiedAt,
         });
@@ -92,12 +90,31 @@ public class APIRegistryService : IAPIRegistryService
                 return Result<APIRegistryDTO>
                     .Failure(new Error(ErrorCodes.NotFound, $"API with the Id' {id} ' was not found"));
 
+            if (registry.UserID != _userService.UserId)
+                return Result<APIRegistryDTO>.Failure(
+                    new Error(ErrorCodes.NotFound, $"API with the Id '{id}' was not found"));
 
-            registry.UserID = registryDto.UserID;
-            registry.TargetURL = registryDto.TargetURL.Trim();
+            if (!UrlNormalizer.TryNormalize(registryDto.TargetURL, out var uri))
+                return Result<APIRegistryDTO>.Failure(
+                    new Error(ErrorCodes.Validation, "TargetURL must be an absolute http(s) URL with a domain name."));
+
+            var canonical = UrlNormalizer.Canonical(uri);
+
+            if (canonical != registry.TargetURL)
+            {
+                if (await APIRegistryExists(canonical))
+                    return Result<APIRegistryDTO>.Failure(
+                        new Error(ErrorCodes.Conflict, $"'{canonical}' is already registered."));
+
+                registry.TargetURL = canonical;
+                registry.VerificationToken = UrlNormalizer.NewVerificationToken();
+                registry.VerifiedAt = null;
+                registry.Status = APIStatus.Inactive;
+            }
+
             registry.AuthType = registryDto.AuthType;
-            registry.Status = APIStatus.Pending;
             registry.LastModifiedAt = DateTime.UtcNow;
+
             var newRegistry = await _repository.UpdateAsync(registry);
 
             return Result<APIRegistryDTO>.Success(new APIRegistryDTO
@@ -107,6 +124,7 @@ public class APIRegistryService : IAPIRegistryService
                 TargetURL = newRegistry.TargetURL,
                 AuthType = newRegistry.AuthType,
                 Status = newRegistry.Status.ToString(),
+                VerificationToken = newRegistry.VerificationToken,
                 CreatedAt = newRegistry.CreatedAt,
                 LastModifiedAt = newRegistry.LastModifiedAt,
             });
@@ -121,20 +139,28 @@ public class APIRegistryService : IAPIRegistryService
     {
         try
         {
+            var userId = _userService.UserId;
+            if (string.IsNullOrEmpty(userId))
+                return Result<APIRegistryDTO>.Failure(new Error(ErrorCodes.Forbidden, "No authenticated user."));
+
             if (registryDto == null) return Result<APIRegistryDTO>.BadRequest();
 
-            var exists = await APIRegistryExists(registryDto.TargetURL);
-            if (exists)
-            {
-                return Result<APIRegistryDTO>.Failure(new Error("Conflict",
-                    $"API with the URL' {registryDto.TargetURL} ' is already Registered"));
-            }
+            if (!UrlNormalizer.TryNormalize(registryDto.TargetURL, out var uri))
+                return Result<APIRegistryDTO>.Failure(
+                    new Error(ErrorCodes.Validation, "TargetURL must be an absolute http(s) URL with a domain name."));
+
+            var canonical = UrlNormalizer.Canonical(uri);
+            if (await APIRegistryExists(canonical))
+                return Result<APIRegistryDTO>.Failure(
+                    new Error(ErrorCodes.Conflict, $"'{canonical}' is already registered."));
 
             var registry = new APIRegistry
             {
-                UserID = registryDto.UserID,
-                TargetURL = registryDto.TargetURL.Trim(),
+                UserID = _userService.UserId,
+                TargetURL = canonical,
+                AuthType = registryDto.AuthType,
                 Status = APIStatus.Inactive,
+                VerificationToken = UrlNormalizer.NewVerificationToken(),
                 CreatedAt = DateTime.UtcNow,
                 LastModifiedAt = DateTime.UtcNow,
             };
@@ -148,6 +174,7 @@ public class APIRegistryService : IAPIRegistryService
                 TargetURL = createdRegistry.TargetURL,
                 AuthType = createdRegistry.AuthType,
                 Status = createdRegistry.Status.ToString(),
+                VerificationToken = createdRegistry.VerificationToken,
                 CreatedAt = createdRegistry.CreatedAt,
                 LastModifiedAt = createdRegistry.LastModifiedAt,
             });
@@ -164,8 +191,11 @@ public class APIRegistryService : IAPIRegistryService
         {
             var registry = await _repository.GetByIdAsync(id);
             if (registry == null)
-                return Result.NotFound(new Error(ErrorCodes.NotFound, $"The API with ID '{id}' does not exist"));
+                return Result.NotFound(new Error(ErrorCodes.NotFound, $"The API with ID '{id}' was not found"));
 
+            if (registry.UserID != _userService.UserId)
+                return Result.Failure(
+                    new Error(ErrorCodes.NotFound, $"API with the Id '{id}' was not found"));
             await _repository.DeleteAsync(id);
             return Result.Success();
         }

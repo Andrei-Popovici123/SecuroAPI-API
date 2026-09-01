@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
+using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 
 namespace SecuroAPI_API.Controllers
@@ -11,10 +12,12 @@ namespace SecuroAPI_API.Controllers
     public class APIRegistryController : BaseFunctionalController
     {
         private readonly IAPIRegistryService _apiRegistryService;
+        private readonly IVerificationService _verificationService;
 
-        public APIRegistryController(IAPIRegistryService apiRegistryService)
+        public APIRegistryController(IAPIRegistryService apiRegistryService, IVerificationService verificationService)
         {
             _apiRegistryService = apiRegistryService;
+            _verificationService = verificationService;
         }
 
         /// <summary>
@@ -67,6 +70,13 @@ namespace SecuroAPI_API.Controllers
         {
             var deletedRegistry = await _apiRegistryService.DeleteAPIRegistryAsync(id);
             return ToActionResult(deletedRegistry);
+        }
+
+
+        [HttpPost("{id:guid}/verify")]
+        public async Task<ActionResult<VerificationStatusDTO>> Verify(Guid id, CancellationToken ct)
+        {
+            return ToActionResult(await _verificationService.VerifyAsync(id, ct));
         }
     }
 }

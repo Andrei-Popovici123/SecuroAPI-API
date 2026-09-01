@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using DnsClient;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -57,6 +58,7 @@ builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p => p
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
+
 //db context
 var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbContext");
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
@@ -104,6 +106,9 @@ builder.Services.AddHostedService<MonitoringResultConsumer>();
 builder.Services.AddSingleton<ITestJobPublisher, TestJobPublisher>();
 builder.Services.AddSingleton<IMonitoringRegisterPublisher, MonitoringRegisterPublisher>();
 builder.Services.AddHostedService<StuckJobClearer>();
+builder.Services.AddSingleton<ILookupClient>(_ => new LookupClient(
+    new LookupClientOptions { UseCache = false, Timeout = TimeSpan.FromSeconds(5) }));
+
 
 // Service and Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
@@ -126,6 +131,7 @@ builder.Services.AddScoped<IAdministrationService, AdministrationService>();
 builder.Services.AddScoped<ITestJobService, TestJobService>();
 builder.Services.AddScoped<ITestJobCrudService, TestJobCrudService>();
 builder.Services.AddScoped<IScoringService, ScoringService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
 
 
 var app = builder.Build();

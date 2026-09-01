@@ -137,7 +137,11 @@ public class AdministrationService : IAdministrationService
             {
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
             }
-
+            
+            if (apiRegistry.VerifiedAt is null)
+                return Result.Failure(new Error(ErrorCodes.BadRequest,
+                    "Target ownership has not been verified."));
+            
             apiRegistry.Status = APIStatus.Approved;
             apiRegistry.LastModifiedAt = DateTime.UtcNow;
 
