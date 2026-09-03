@@ -1,13 +1,11 @@
 using System.Text;
-using System.Text.Json.Serialization;
 using DnsClient;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SecuroAPI_API.Handlers;
 using SecuroAPI_API.Messaging;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -47,13 +45,13 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 //CORS
-const string CorsPolicy = "SecuroApiCors";
+const string corsPolicy = "SecuroApiCors";
 
 var origins = builder.Configuration
                   .GetSection("Cors:AllowedOrigins").Get<string[]>()
               ?? throw new InvalidOperationException("Cors:AllowedOrigins not configured");
 
-builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p => p
+builder.Services.AddCors(o => o.AddPolicy(corsPolicy, p => p
     .WithOrigins(origins)
     .AllowAnyHeader()
     .AllowAnyMethod()));
@@ -64,9 +62,17 @@ var connectionString = builder.Configuration.GetConnectionString("SecuroAPIDbCon
 builder.Services.AddDbContext<SecuroAPIDbContext>(options => options.UseSqlServer(connectionString));
 
 //Identity
-builder.Services.AddIdentityApiEndpoints<ApplicationUser>(options => { })
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<SecuroAPIDbContext>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(o =>
+    {
+        o.Lockout.MaxFailedAccessAttempts = 5;
+        o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        o.Lockout.AllowedForNewUsers = true;
+        o.Password.RequiredLength = 12;
+        o.Password.RequireNonAlphanumeric = false;
+        o.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<SecuroAPIDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
@@ -96,9 +102,13 @@ builder.Services.AddAuthentication(options =>
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
             ClockSkew = TimeSpan.Zero
         };
+        options.EventsType = typeof(TokenRevocationEvents);
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(o =>
+{
+    o.AddPolicy("ApprovedUser", p => p.RequireClaim("status", "Approved"));
+});
 
 builder.Services.AddSingleton<RabbitMqConnection>();
 builder.Services.AddHostedService<TestResultConsumer>();
@@ -108,7 +118,7 @@ builder.Services.AddSingleton<IMonitoringRegisterPublisher, MonitoringRegisterPu
 builder.Services.AddHostedService<StuckJobClearer>();
 builder.Services.AddSingleton<ILookupClient>(_ => new LookupClient(
     new LookupClientOptions { UseCache = false, Timeout = TimeSpan.FromSeconds(5) }));
-
+builder.Services.AddScoped<TokenRevocationEvents>();
 
 // Service and Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
@@ -142,7 +152,19 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.UseCors(CorsPolicy);
+app.Use(async (ctx, next) =>
+{
+    var h = ctx.Response.Headers;
+    h["X-Content-Type-Options"] = "nosniff";
+    h["X-Frame-Options"] = "DENY";
+    h["Referrer-Policy"] = "no-referrer";
+    h["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()";
+    
+    if (!app.Environment.IsDevelopment())
+        h["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
+    await next();
+});
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -152,8 +174,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => { options.EnablePersistAuthorization(); });
 }
 
-app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
+app.UseRouting(); 
+app.UseCors(corsPolicy);
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();

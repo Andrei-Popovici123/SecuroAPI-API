@@ -13,6 +13,8 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         
         builder.Property(u => u.LastName)
             .HasMaxLength(100);
+        builder.Property(u => u.CompanyName)
+            .HasMaxLength(200);
         
         builder.Property(u => u.Status)
             .HasConversion<string>()

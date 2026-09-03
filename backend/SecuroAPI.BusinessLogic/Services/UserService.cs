@@ -4,9 +4,8 @@ using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using SecuroAPI.BusinessLogic.DTO_s.Auth;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
@@ -25,18 +24,24 @@ public class UserService : IUserService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IOptions<JwtSettings> _jwtOptions;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    
-    //this might be fix, gotta check if it broke something
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly ILogger<UserService> _logger;
+
     public string UserId => _httpContextAccessor?
         .HttpContext?
         .User?
         .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? String.Empty;
+    
+    public bool IsAdministrator => _httpContextAccessor?.HttpContext?
+        .User?.IsInRole(RoleNames.Administrator) ?? false;
 
-    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor)
+    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor, SignInManager<ApplicationUser> signInManager, ILogger<UserService> logger)
     {
         _userManager = userManager;
         _jwtOptions = jwtOptions;
         _httpContextAccessor = httpContextAccessor;
+        _signInManager = signInManager;
+        _logger = logger;
     }
 
 
@@ -49,10 +54,9 @@ public class UserService : IUserService
             FirstName = registerUserDto.FirstName,
             LastName = registerUserDto.LastName,
             UserName = registerUserDto.Email,
+            CompanyName = registerUserDto.CompanyName,
             Status = status
         };
-        
-        
 
         var createdUser = await _userManager.CreateAsync(user, registerUserDto.Password);
         if (!createdUser.Succeeded)
@@ -62,7 +66,13 @@ public class UserService : IUserService
             return Result<GetRegisteredUserDTO>.BadRequest(errors);
         }
 
-        await _userManager.AddToRoleAsync(user, role);
+        var roleResult =await _userManager.AddToRoleAsync(user, role);
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(user); 
+            return Result<GetRegisteredUserDTO>.Failure(
+                new Error(ErrorCodes.Failure, "Registration failed."));
+        }
 
         var registeredUser = new GetRegisteredUserDTO
         {
@@ -83,14 +93,25 @@ public class UserService : IUserService
             return Result<string>
                 .Failure(new Error(ErrorCodes.BadRequest, "Invalid Credentials"));
 
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, loginUserDto.Password);
-        if (!isPasswordValid)
-            return Result<string>
-                .Failure(new Error(ErrorCodes.BadRequest, "Invalid Credentials"));
+        var signIn = await _signInManager.CheckPasswordSignInAsync(
+            user, loginUserDto.Password, lockoutOnFailure: true);
 
+        if (signIn.IsLockedOut)
+            return Result<string>.Failure(
+                new Error(ErrorCodes.Forbidden, "Account temporarily locked. Try again later."));
+
+        if (!signIn.Succeeded)
+            return Result<string>.Failure(new Error(ErrorCodes.BadRequest, "Invalid credentials."));
+
+        if (user.Status == UserStatus.Banned)
+            return Result<string>.Failure(new Error(ErrorCodes.Forbidden, "Account suspended."));
+        
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
         // token Issuing
         var token = await GenerateToken(user);
-
+        _logger.LogWarning("User {UserId} has successfully logged in from {IP}", 
+            loginUserDto.Email, _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
         return Result<string>.Success(token);
     }
 
@@ -115,6 +136,7 @@ public class UserService : IUserService
             Email = user.Email!,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            CompanyName = user.CompanyName,
             Status = user.Status.ToString()
         };
         return Result<GetRegisteredUserDTO>.Success(userDto);
@@ -130,6 +152,7 @@ public class UserService : IUserService
             Email = user.Email!,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            CompanyName = user.CompanyName,
             Status = user.Status.ToString()
         });
         return Result<IEnumerable<GetRegisteredUserDTO>>.Success(usersDto);
@@ -143,6 +166,8 @@ public class UserService : IUserService
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim("sstamp", user.SecurityStamp ?? string.Empty),
+            new Claim("status", user.Status.ToString())
         };
 
         //user role claims

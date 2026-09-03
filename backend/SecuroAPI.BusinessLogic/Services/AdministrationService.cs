@@ -91,7 +91,7 @@ public class AdministrationService : IAdministrationService
             user.Status = UserStatus.Approved;
             user.LastModifiedAt = DateTime.UtcNow;
             await _userManager.UpdateAsync(user);
-
+            await _userManager.UpdateSecurityStampAsync(user);
             return Result.Success();
         }
         catch (Exception)
@@ -119,6 +119,7 @@ public class AdministrationService : IAdministrationService
             user.LastModifiedAt = DateTime.UtcNow;
 
              await _userManager.UpdateAsync(user);
+             await _userManager.UpdateSecurityStampAsync(user);
 
             return Result.Success();
         }

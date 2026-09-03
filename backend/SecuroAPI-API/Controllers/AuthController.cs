@@ -36,5 +36,10 @@ namespace SecuroAPI_API.Controllers
             var result = await _userService.LoginUserAsync(loginUserDto);
             return ToActionResult(result);
         }
+        
+        [Authorize]                                 
+        [HttpGet("me")]
+        public async Task<ActionResult<GetRegisteredUserDTO>> Me()
+            => ToActionResult(await _userService.GetByIdAsync(_userService.UserId));
     }
 }
