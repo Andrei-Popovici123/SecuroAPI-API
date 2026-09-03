@@ -110,19 +110,14 @@ public class TestConfigService : ITestConfigService
 
     public async Task<Result> DeleteTestConfigAsync(Guid id)
     {
-        try
-        {
+
             var testConfig = await _repository.GetByIdAsync(id);
             if (testConfig == null)
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"TestConfig with ID '{id}' does not exist"));
 
             await _repository.DeleteAsync(id);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
+            
     }
 
     public async Task<Result<TestConfigDto>> GetTestConfigByAPIID (Guid id)

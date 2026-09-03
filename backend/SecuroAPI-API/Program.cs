@@ -119,6 +119,8 @@ builder.Services.AddHostedService<StuckJobClearer>();
 builder.Services.AddSingleton<ILookupClient>(_ => new LookupClient(
     new LookupClientOptions { UseCache = false, Timeout = TimeSpan.FromSeconds(5) }));
 builder.Services.AddScoped<TokenRevocationEvents>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Service and Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
@@ -146,11 +148,15 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SecuroAPIDbContext>();
     db.Database.Migrate();
 }
+
+
 
 app.Use(async (ctx, next) =>
 {

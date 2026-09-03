@@ -120,19 +120,13 @@ public class ScoreReportService : IScoreReportService
 
     public async Task<Result> DeleteScoreReportAsync(Guid id)
     {
-        try
-        {
+
             var scoreReport = await _repository.GetByIdAsync(id);
             if (scoreReport == null)
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"ScoreReport with ID '{id}' does not exist"));
 
             await _repository.DeleteAsync(id);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
     }
     
 

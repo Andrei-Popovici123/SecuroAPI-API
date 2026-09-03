@@ -187,8 +187,6 @@ public class APIRegistryService : IAPIRegistryService
 
     public async Task<Result> DeleteAPIRegistryAsync(Guid id)
     {
-        try
-        {
             var registry = await _repository.GetByIdAsync(id);
             if (registry == null)
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"The API with ID '{id}' was not found"));
@@ -198,11 +196,6 @@ public class APIRegistryService : IAPIRegistryService
                     new Error(ErrorCodes.NotFound, $"API with the Id '{id}' was not found"));
             await _repository.DeleteAsync(id);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
     }
 
     public async Task<bool> APIRegistryExists(string targetUrl)

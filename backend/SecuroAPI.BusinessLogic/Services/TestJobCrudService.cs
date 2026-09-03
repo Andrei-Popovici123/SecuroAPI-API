@@ -48,8 +48,7 @@ public class TestJobCrudService : ITestJobCrudService
 
     public async Task<Result> DeleteTestJobAsync(Guid id)
     {
-        try
-        {
+
             var job = await _repository.GetByIdAsync(id);
             if (job == null)
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"TestJob with ID '{id}' does not exist"));
@@ -60,11 +59,8 @@ public class TestJobCrudService : ITestJobCrudService
 
             await _repository.DeleteAsync(id);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
+        
+
     }
 
     private static TestJobDto MapToDto(TestJob job) => new()

@@ -121,19 +121,13 @@ public class AnomalyLogService : IAnomalyLogService
 
     public async Task<Result> DeleteAnomalyLogAsync(Guid id)
     {
-        try
-        {
             var log = await _repository.GetByIdAsync(id);
             if (log == null)
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"Log with ID '{id}' does not exist"));
 
             await _repository.DeleteAsync(id);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
+
     }
 
     public async Task<Result<IEnumerable<AnomalyLogDto>>> GetAllAnomalyLogByAPIID(Guid id)

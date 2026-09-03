@@ -133,19 +133,14 @@ public class RatingService : IRatingService
 
     public async Task<Result> DeleteRatingAsync(Guid id)
     {
-        try
-        {
+
             var rating = await _repository.GetByIdAsync(id);
             if (rating == null)
                 return Result.NotFound(new Error(ErrorCodes.NotFound, $"Rating with ID '{id}' does not exist"));
 
             await _repository.DeleteAsync(id);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
+        
     }
 
     public async Task<Result<IEnumerable<RatingDto>>> GetAllRatingsByAPIID(Guid id)

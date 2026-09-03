@@ -75,8 +75,7 @@ public class AdministrationService : IAdministrationService
 
     public async Task<Result> ApproveUser(string id)
     {
-        try
-        {
+    
             if (string.IsNullOrWhiteSpace(id))
             {
                 return Result.Failure();
@@ -93,17 +92,10 @@ public class AdministrationService : IAdministrationService
             await _userManager.UpdateAsync(user);
             await _userManager.UpdateSecurityStampAsync(user);
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
     }
 
     public async Task<Result> RejectUser(string id)
     {
-        try
-        {
             if (string.IsNullOrWhiteSpace(id))
             {
                 return Result.Failure();
@@ -122,17 +114,10 @@ public class AdministrationService : IAdministrationService
              await _userManager.UpdateSecurityStampAsync(user);
 
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
     }
 
     public async Task<Result> ApproveAPI(Guid id)
     {
-        try
-        {
             var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
             if (apiRegistry == null)
             {
@@ -149,17 +134,12 @@ public class AdministrationService : IAdministrationService
             await _apiRegistryRepository.UpdateAsync(apiRegistry);
 
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
+        
     }
 
     public async Task<Result> RejectAPI(Guid id)
     {
-        try
-        {
+
             var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
             if (apiRegistry == null)
             {
@@ -172,10 +152,6 @@ public class AdministrationService : IAdministrationService
             await _apiRegistryRepository.UpdateAsync(apiRegistry);
 
             return Result.Success();
-        }
-        catch (Exception)
-        {
-            return Result.Failure();
-        }
+
     }
 }
