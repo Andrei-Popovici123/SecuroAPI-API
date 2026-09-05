@@ -12,21 +12,21 @@ namespace SecuroAPI.BusinessLogic.Services;
 public class TestConfigService : ITestConfigService
 {
     private readonly ITestConfigRepository _repository;
+    private readonly IAPIRegistryRepository _apiRepository;
+    private readonly IUserService _userService;
 
-    public TestConfigService(ITestConfigRepository repository)
+    public TestConfigService(ITestConfigRepository repository, IAPIRegistryRepository apiRepository,
+        IUserService userService)
     {
         _repository = repository;
+        _apiRepository = apiRepository;
+        _userService = userService;
     }
 
     public async Task<Result<IEnumerable<TestConfigDto>>> GetAllTestConfigAsync()
     {
         var testConfig = await _repository.GetAllAsync();
-        var mappedTestConfig = testConfig.Select(tc => new TestConfigDto()
-        {
-            ConfigId = tc.ConfigId,
-            APIID = tc.APIID,
-            EnabledTestIds = tc.EnabledTestIds,
-        });
+        var mappedTestConfig = testConfig.Select(MapToDto);
 
         return Result<IEnumerable<TestConfigDto>>.Success(mappedTestConfig);
     }
@@ -35,22 +35,16 @@ public class TestConfigService : ITestConfigService
     {
         var testConfig = await _repository.GetByIdAsync(id);
 
-        if (testConfig == null)
+        if (testConfig == null || !await OwnsApi(testConfig.APIID))
             return Result<TestConfigDto>
                 .Failure(new Error(ErrorCodes.NotFound, $"TestConfig with the Id' {id} ' was not found"));
 
-        return Result<TestConfigDto>.Success(new TestConfigDto
-        {
-            ConfigId = testConfig.ConfigId,
-            APIID = testConfig.APIID,
-            EnabledTestIds = testConfig.EnabledTestIds,
-        });
+        return Result<TestConfigDto>.Success(MapToDto(testConfig));
     }
 
     public async Task<Result<TestConfigDto>> UpdateTestConfigAsync(Guid id, UpdateTestConfigDto? testConfigDto)
     {
-        try
-        {
+
             if (testConfigDto == null) return Result<TestConfigDto>.BadRequest();
             var testConfig = await _repository.GetByIdAsync(id);
 
@@ -58,28 +52,30 @@ public class TestConfigService : ITestConfigService
                 return Result<TestConfigDto>
                     .Failure(new Error(ErrorCodes.NotFound, $"TestConfig with the Id' {id} ' was not found"));
 
+            if (!await OwnsApi(testConfig.APIID))
+                return Result<TestConfigDto>.Failure(
+                    new Error(ErrorCodes.NotFound, $"TestConfig with the Id '{id}' was not found"));
+
             testConfig.EnabledTestIds = testConfigDto.EnabledTestIds;
 
             var updatedTestConfig = await _repository.UpdateAsync(testConfig);
 
-            return Result<TestConfigDto>.Success(new TestConfigDto
-            {
-                ConfigId = updatedTestConfig.ConfigId,
-                APIID = updatedTestConfig.APIID,
-                EnabledTestIds = updatedTestConfig.EnabledTestIds
-            });
-        }
-        catch (Exception)
-        {
-            return Result<TestConfigDto>.Failure();
-        }
+            return Result<TestConfigDto>.Success(MapToDto(updatedTestConfig));
+
     }
 
     public async Task<Result<TestConfigDto>> CreateTestConfigAsync(CreateTestConfigDto? testConfigDto)
     {
-        try
-        {
+
             if (testConfigDto == null) return Result<TestConfigDto>.BadRequest();
+            
+            if (await _repository.CheckExistsAsync(tc => tc.APIID == testConfigDto.APIID))
+                return Result<TestConfigDto>.Failure(
+                    new Error(ErrorCodes.Conflict, "A configuration already exists for this API."));
+            
+            if (!await OwnsApi(testConfigDto.APIID))
+                return Result<TestConfigDto>.Failure(
+                    new Error(ErrorCodes.NotFound, $"API with the Id '{testConfigDto.APIID}' was not found"));
 
             var testConfig = new TestConfig
             {
@@ -90,45 +86,31 @@ public class TestConfigService : ITestConfigService
             var newTestConfig = await _repository.AddAsync(testConfig);
 
 
-            return Result<TestConfigDto>.Success(new TestConfigDto
-            {
-                ConfigId = newTestConfig.ConfigId,
-                APIID = newTestConfig.APIID,
-                EnabledTestIds = newTestConfig.EnabledTestIds
-            });
-        }
-        // catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
-        // {
-        //     return Result<TestConfigDto>.Failure(new Error(ErrorCodes.NotFound,$"Validation failed: The provided APIID '{testConfigDto!.APIID}' does not exist."));
-        // }
-        // figure out how to get rid of 500 on wrong apiid
-        catch (Exception)
-        {
-            return Result<TestConfigDto>.Failure();
-        }
+            return Result<TestConfigDto>.Success(MapToDto(newTestConfig));
     }
 
     public async Task<Result> DeleteTestConfigAsync(Guid id)
     {
+        var testConfig = await _repository.GetByIdAsync(id);
+        if (testConfig == null)
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"TestConfig with ID '{id}' does not exist"));
 
-            var testConfig = await _repository.GetByIdAsync(id);
-            if (testConfig == null)
-                return Result.NotFound(new Error(ErrorCodes.NotFound, $"TestConfig with ID '{id}' does not exist"));
-
-            await _repository.DeleteAsync(id);
-            return Result.Success();
-            
+        await _repository.DeleteAsync(id);
+        return Result.Success();
     }
 
-    public async Task<Result<TestConfigDto>> GetTestConfigByAPIID (Guid id)
+    public async Task<Result<TestConfigDto>> GetTestConfigByAPIID(Guid id)
     {
+        if (!await OwnsApi(id))
+            return Result<TestConfigDto>.Failure(
+                new Error(ErrorCodes.NotFound, $"TestConfig for the API with id '{id}' was not found"));
         var testConfig = await _repository.GetByAPIID(id);
-        
+
         if (testConfig == null)
             return Result<TestConfigDto>
                 .Failure(new Error(ErrorCodes.NotFound, $"TestConfig for the API with id' {id} ' was not found"));
 
-        
+
         var mappedTestConfig = new TestConfigDto()
         {
             ConfigId = testConfig.ConfigId,
@@ -138,4 +120,14 @@ public class TestConfigService : ITestConfigService
 
         return Result<TestConfigDto>.Success(mappedTestConfig);
     }
+
+    private async Task<bool> OwnsApi(Guid apiId)
+        => await _apiRepository.CheckExistsAsync(a => a.APIID == apiId && a.UserID == _userService.UserId);
+
+    private static TestConfigDto MapToDto(TestConfig tc) => new()
+    {
+        ConfigId = tc.ConfigId,
+        APIID = tc.APIID,
+        EnabledTestIds = tc.EnabledTestIds,
+    };
 }

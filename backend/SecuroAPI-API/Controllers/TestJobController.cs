@@ -10,7 +10,7 @@ namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "ApprovedUser")]
     public class TestJobController : BaseFunctionalController
     {
         private readonly ITestJobService _testJobService;
@@ -51,22 +51,21 @@ namespace SecuroAPI_API.Controllers
             return ToActionResult(testJob);
         }
 
-        [HttpGet("APIID/{id:guid}")]
+        [HttpGet("allByApiId/{id:guid}")]
         public async Task<ActionResult<IEnumerable<TestJobDto>>> GetByAPIID(Guid id)
         {
             var testJobs = await _testJobCrudService.GetAllTestJobsByAPIID(id);
             return ToActionResult(testJobs);
         }
 
-        [HttpGet("User/{id}")]
-        public async Task<ActionResult<IEnumerable<TestJobDto>>> GetByUserId(string id)
+        [HttpGet("myJobs")]
+        public async Task<ActionResult<IEnumerable<TestJobDto>>> GetByUserId()
         {
-            var testJobs = await _testJobCrudService.GetAllTestJobsByUserId(id);
+            var testJobs = await _testJobCrudService.GetMyTestJobsAsync();
             return ToActionResult(testJobs);
         }
 
         [HttpDelete("{id:guid}")]
-        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deletedTestJob = await _testJobCrudService.DeleteTestJobAsync(id);

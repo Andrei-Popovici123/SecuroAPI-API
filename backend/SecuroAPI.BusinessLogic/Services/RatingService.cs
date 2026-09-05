@@ -12,25 +12,20 @@ namespace SecuroAPI.BusinessLogic.Services;
 public class RatingService : IRatingService
 {
     private readonly IRatingRepository _repository;
+    private readonly IAPIRegistryRepository _apiRepository;
+    private readonly IUserService _userService;
 
-    public RatingService(IRatingRepository repository)
+    public RatingService(IRatingRepository repository, IAPIRegistryRepository apiRepository, IUserService userService)
     {
         _repository = repository;
+        _apiRepository = apiRepository;
+        _userService = userService;
     }
 
     public async Task<Result<IEnumerable<RatingDto>>> GetAllRatingAsync()
     {
         var rating = await _repository.GetAllAsync();
-        var mappedRating = rating.Select(r => new RatingDto()
-        {
-            RatingId = r.RatingId,
-            VulnerabilityScore = r.VulnerabilityScore,
-            NumberOfTests = r.NumberOfTests,
-            OverallScore = r.OverallScore,
-            APIID = r.APIID,
-            CreatedAt = r.CreatedAt,
-            LastModifiedAt = r.LastModifiedAt
-        });
+        var mappedRating = rating.Select(MapToDto);
 
         return Result<IEnumerable<RatingDto>>.Success(mappedRating);
     }
@@ -39,26 +34,16 @@ public class RatingService : IRatingService
     {
         var rating = await _repository.GetByIdAsync(id);
 
-        if (rating == null)
+        if (rating == null || !await OwnsApi(rating.APIID))
             return Result<RatingDto>
                 .Failure(new Error(ErrorCodes.NotFound, $"Rating with the Id' {id} ' was not found"));
 
-        return Result<RatingDto>.Success(new RatingDto
-        {
-            RatingId = rating.RatingId,
-            VulnerabilityScore = rating.VulnerabilityScore,
-            NumberOfTests = rating.NumberOfTests,
-            OverallScore = rating.OverallScore,
-            APIID = rating.APIID,
-            CreatedAt = rating.CreatedAt,
-            LastModifiedAt = rating.LastModifiedAt
-        });
+        return Result<RatingDto>.Success(MapToDto(rating));
     }
 
     public async Task<Result<RatingDto>> UpdateRatingAsync(Guid id, UpdateRatingDto? ratingDto)
     {
-        try
-        {
+
             if (ratingDto == null) return Result<RatingDto>.BadRequest();
             var rating = await _repository.GetByIdAsync(id);
 
@@ -83,17 +68,11 @@ public class RatingService : IRatingService
                 CreatedAt = updatedRating.CreatedAt,
                 LastModifiedAt = updatedRating.LastModifiedAt
             });
-        }
-        catch (Exception)
-        {
-            return Result<RatingDto>.Failure();
-        }
     }
 
     public async Task<Result<RatingDto>> CreateRatingAsync(CreateRatingDto? ratingDto)
     {
-        try
-        {
+
             if (ratingDto == null) return Result<RatingDto>.BadRequest();
 
             var rating = new Rating
@@ -119,16 +98,7 @@ public class RatingService : IRatingService
                 CreatedAt = newRating.CreatedAt,
                 LastModifiedAt = newRating.LastModifiedAt
             });
-        }
-        // catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 547)
-        // {
-        //     return Result<RatingDto>.Failure(new Error(ErrorCodes.NotFound,$"Validation failed: The provided APIID '{ratingDto!.APIID}' does not exist."));
-        // }
-        // figure out how to get rid of 500 on wrong apiid
-        catch (Exception)
-        {
-            return Result<RatingDto>.Failure();
-        }
+
     }
 
     public async Task<Result> DeleteRatingAsync(Guid id)
@@ -146,17 +116,34 @@ public class RatingService : IRatingService
     public async Task<Result<IEnumerable<RatingDto>>> GetAllRatingsByAPIID(Guid id)
     {
         var rating = await _repository.GetAllByAPIID(id);
-        var mappedRating = rating.Select(r => new RatingDto()
-        {
-            RatingId = r.RatingId,
-            VulnerabilityScore = r.VulnerabilityScore,
-            NumberOfTests = r.NumberOfTests,
-            OverallScore = r.OverallScore,
-            APIID = r.APIID,
-            CreatedAt = r.CreatedAt,
-            LastModifiedAt = r.LastModifiedAt
-        });
+        var mappedRating = rating.Select(MapToDto);
 
         return Result<IEnumerable<RatingDto>>.Success(mappedRating);
     }
+    
+    public async Task<Result<IEnumerable<RatingDto>>> GetMyLatestRatingsAsync()
+    {
+        var userId = _userService.UserId;
+
+        var ratings = await _repository.GetAllAsync(r => r.Registry.UserID == userId);
+
+        return Result<IEnumerable<RatingDto>>.Success(
+            ratings.GroupBy(r => r.APIID)
+                .Select(g => g.OrderByDescending(x => x.CreatedAt).First())
+                .Select(MapToDto));
+    }
+    
+    private async Task<bool> OwnsApi(Guid apiId)
+        => await _apiRepository.CheckExistsAsync(a => a.APIID == apiId && a.UserID == _userService.UserId);
+
+    private static RatingDto MapToDto(Rating r) => new()
+    {
+        RatingId           = r.RatingId,
+        VulnerabilityScore = r.VulnerabilityScore,
+        NumberOfTests      = r.NumberOfTests,
+        OverallScore       = r.OverallScore,
+        APIID              = r.APIID,
+        CreatedAt          = r.CreatedAt,
+        LastModifiedAt     = r.LastModifiedAt
+    };
 }

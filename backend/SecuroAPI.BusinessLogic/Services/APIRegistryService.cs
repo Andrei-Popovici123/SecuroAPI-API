@@ -24,65 +24,40 @@ public class APIRegistryService : IAPIRegistryService
         _repository = repository;
         _userService = userService;
     }
-
+    
     public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesAsync()
     {
         var registries = await _repository.GetAllAsync();
-        var mappedRegistries = registries.Select(r => new APIRegistryDTO()
-        {
-            APIID = r.APIID,
-            UserID = r.UserID,
-            TargetURL = r.TargetURL,
-            AuthType = r.AuthType,
-            Status = r.Status.ToString(),
-            CreatedAt = r.CreatedAt,
-            LastModifiedAt = r.LastModifiedAt,
-        });
+        var mappedRegistries = registries.Select(MapToDto);
 
         return Result<IEnumerable<APIRegistryDTO>>.Success(mappedRegistries);
     }
-
+    
     public async Task<Result<APIRegistryDTO>> GetAPIRegistryByIdAsync(Guid id)
     {
         var registry = await _repository.GetByIdAsync(id);
-
-        if (registry == null)
-            return Result<APIRegistryDTO>
-                .Failure(new Error(ErrorCodes.NotFound, $"API with the Id' {id} ' was not found"));
-
-        return Result<APIRegistryDTO>.Success(new APIRegistryDTO
-        {
-            APIID = registry.APIID,
-            UserID = registry.UserID,
-            TargetURL = registry.TargetURL,
-            AuthType = registry.AuthType,
-            Status = registry.Status.ToString(),
-            CreatedAt = registry.CreatedAt,
-            LastModifiedAt = registry.LastModifiedAt,
-        });
+        
+        if (registry is null || registry.UserID != _userService.UserId)
+            return Result<APIRegistryDTO>.Failure(
+                new Error(ErrorCodes.NotFound, $"API with the Id '{id}' was not found"));
+        
+        return Result<APIRegistryDTO>.Success(MapToDto(registry));
     }
 
-    public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllAPIRegistriesByUserID(string id)
+    public async Task<Result<IEnumerable<APIRegistryDTO>>> GetMyRegistriesAsync()
     {
-        var registries = await _repository.GetAllByUserId(id);
-        var mappedRegistries = registries.Select(r => new APIRegistryDTO
-        {
-            APIID = r.APIID,
-            UserID = r.UserID,
-            TargetURL = r.TargetURL,
-            AuthType = r.AuthType,
-            Status = r.Status.ToString(),
-            VerificationToken = r.VerificationToken,
-            CreatedAt = r.CreatedAt,
-            LastModifiedAt = r.LastModifiedAt,
-        });
-        return Result<IEnumerable<APIRegistryDTO>>.Success(mappedRegistries);
+        var userId = _userService.UserId;
+        if (string.IsNullOrEmpty(userId))
+            return Result<IEnumerable<APIRegistryDTO>>.Failure(
+                new Error(ErrorCodes.Forbidden, "No authenticated user."));
+        
+        var registries = await _repository.GetAllByUserId(userId);
+        return Result<IEnumerable<APIRegistryDTO>>.Success(
+            registries.OrderByDescending(r => r.CreatedAt).Select(MapToDto));
     }
 
     public async Task<Result<APIRegistryDTO>> UpdateAPIRegistryAsync(Guid id, UpdateAPIRegistryDTO? registryDto)
     {
-        try
-        {
             if (registryDto == null) return Result<APIRegistryDTO>.BadRequest();
             var registry = await _repository.GetByIdAsync(id);
 
@@ -117,28 +92,13 @@ public class APIRegistryService : IAPIRegistryService
 
             var newRegistry = await _repository.UpdateAsync(registry);
 
-            return Result<APIRegistryDTO>.Success(new APIRegistryDTO
-            {
-                APIID = newRegistry.APIID,
-                UserID = newRegistry.UserID,
-                TargetURL = newRegistry.TargetURL,
-                AuthType = newRegistry.AuthType,
-                Status = newRegistry.Status.ToString(),
-                VerificationToken = newRegistry.VerificationToken,
-                CreatedAt = newRegistry.CreatedAt,
-                LastModifiedAt = newRegistry.LastModifiedAt,
-            });
-        }
-        catch (Exception)
-        {
-            return Result<APIRegistryDTO>.Failure();
-        }
+            return Result<APIRegistryDTO>.Success(MapToDto(newRegistry));
+        
     }
 
     public async Task<Result<APIRegistryDTO>> CreateAPIRegistryAsync(CreateAPIRegistryDTO? registryDto)
     {
-        try
-        {
+
             var userId = _userService.UserId;
             if (string.IsNullOrEmpty(userId))
                 return Result<APIRegistryDTO>.Failure(new Error(ErrorCodes.Forbidden, "No authenticated user."));
@@ -167,22 +127,7 @@ public class APIRegistryService : IAPIRegistryService
 
             var createdRegistry = await _repository.AddAsync(registry);
 
-            return Result<APIRegistryDTO>.Success(new APIRegistryDTO
-            {
-                APIID = createdRegistry.APIID,
-                UserID = createdRegistry.UserID,
-                TargetURL = createdRegistry.TargetURL,
-                AuthType = createdRegistry.AuthType,
-                Status = createdRegistry.Status.ToString(),
-                VerificationToken = createdRegistry.VerificationToken,
-                CreatedAt = createdRegistry.CreatedAt,
-                LastModifiedAt = createdRegistry.LastModifiedAt,
-            });
-        }
-        catch (Exception)
-        {
-            return Result<APIRegistryDTO>.Failure();
-        }
+            return Result<APIRegistryDTO>.Success(MapToDto(createdRegistry));
     }
 
     public async Task<Result> DeleteAPIRegistryAsync(Guid id)
@@ -206,4 +151,17 @@ public class APIRegistryService : IAPIRegistryService
         return await _repository
             .CheckExistsAsync(u => u.TargetURL == cleanedUrl);
     }
+    private static APIRegistryDTO MapToDto(APIRegistry r) => new()
+    {
+        APIID             = r.APIID,
+        UserID            = r.UserID,
+        TargetURL         = r.TargetURL,
+        AuthType          = r.AuthType,
+        Status            = r.Status.ToString(),
+        VerificationToken = r.VerificationToken,
+        VerifiedAt        = r.VerifiedAt,
+        CreatedAt         = r.CreatedAt,
+        LastModifiedAt    = r.LastModifiedAt,
+    };
+    
 }

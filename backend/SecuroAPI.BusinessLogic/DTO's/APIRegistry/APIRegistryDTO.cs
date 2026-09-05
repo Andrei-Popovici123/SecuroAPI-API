@@ -13,4 +13,5 @@ public class APIRegistryDTO
     public DateTime? LastModifiedAt { get; set; }
     
     public string VerificationToken { get; set; } = string.Empty;
+    public DateTime? VerifiedAt { get; set; }
 }

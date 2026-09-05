@@ -11,7 +11,7 @@ namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = RoleNames.Administrator)]
+    [Authorize(Roles = RoleNames.Administrator, Policy = "ApprovedUser")]
     public class AdminController : BaseFunctionalController
     {
         private readonly IAdministrationService _administrationService;
@@ -22,58 +22,50 @@ namespace SecuroAPI_API.Controllers
             _administrationService = administrationService;
             _userService = userService;
         }
-
-        [HttpGet("/API")]
+        
+        [HttpGet("apis/pending")]
         public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> GetUnapprovedAPIs()
         {
             var registries = await _administrationService.GetAllUnapprovedAPIs();
             return ToActionResult(registries);
         }
 
-        [HttpGet("/users")]
+        [HttpGet("users")]
         public async Task<ActionResult<IEnumerable<GetRegisteredUserDTO>>> GetUsers()
         {
             var users = await _administrationService.GetAllUsers();
             return ToActionResult(users);
         }
 
-        [HttpGet("/users/pending")]
+        [HttpGet("users/pending")]
         public async Task<ActionResult<IEnumerable<GetRegisteredUserDTO>>> GetUnapprovedUsers()
         {
             var registries = await _administrationService.GetAllUnapprovedUsers();
             return ToActionResult(registries);
         }
-        [AllowAnonymous]
-        [HttpPost("registerAdmin")]
-        public async Task<ActionResult<GetRegisteredUserDTO>> RegisterAdmin(RegisterUserDTO registerUserDto)
-        {
-            var result =
-                await _userService.RegisterUserAsync(registerUserDto, RoleNames.Administrator, UserStatus.Approved);
-            return ToActionResult(result);
-        }
 
-        [HttpPost("/users/{id}/approve")]
+        [HttpPost("users/{id}/approve")]
         public async Task<ActionResult<GetRegisteredUserDTO>> ApproveUser([FromRoute] string id)
         {
             var result = await _administrationService.ApproveUser(id);
             return ToActionResult(result);
         }
 
-        [HttpPost("/users/{id}/reject")]
+        [HttpPost("users/{id}/reject")]
         public async Task<ActionResult<GetRegisteredUserDTO>> RejectUser([FromRoute] string id)
         {
             var result = await _administrationService.RejectUser(id);
             return ToActionResult(result);
         }
 
-        [HttpPost("/API/{id:guid}/approve")]
+        [HttpPost("apis/{id:guid}/approve")]
         public async Task<ActionResult<GetRegisteredUserDTO>> ApproveAPI([FromRoute] Guid id)
         {
             var result = await _administrationService.ApproveAPI(id);
             return ToActionResult(result);
         }
 
-        [HttpPost("/API/{id:guid}/Reject")]
+        [HttpPost("apis/{id:guid}/Reject")]
         public async Task<ActionResult<GetRegisteredUserDTO>> RejectAPI([FromRoute] Guid id)
         {
             var result = await _administrationService.RejectAPI(id);

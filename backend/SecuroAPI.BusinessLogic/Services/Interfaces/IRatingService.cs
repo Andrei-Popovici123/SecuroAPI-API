@@ -12,4 +12,5 @@ public interface IRatingService
     Task<Result<RatingDto>> CreateRatingAsync(CreateRatingDto? ratingDto);
     Task<Result> DeleteRatingAsync(Guid id);
     Task<Result<IEnumerable<RatingDto>>> GetAllRatingsByAPIID(Guid id);
+    Task<Result<IEnumerable<RatingDto>>> GetMyLatestRatingsAsync();
 }

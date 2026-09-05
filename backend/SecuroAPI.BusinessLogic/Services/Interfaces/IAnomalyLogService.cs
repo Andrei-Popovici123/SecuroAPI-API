@@ -11,4 +11,5 @@ public interface IAnomalyLogService
     Task<Result<AnomalyLogDto>> CreateAnomalyLogAsync(CreateAnomalyLogDto? anomalyLogDto);
     Task<Result> DeleteAnomalyLogAsync(Guid id);
     Task<Result<IEnumerable<AnomalyLogDto>>> GetAllAnomalyLogByAPIID(Guid id);
+    Task<Result<IEnumerable<AnomalyLogDto>>> GetMyAnomalyLogsAsync();
 }

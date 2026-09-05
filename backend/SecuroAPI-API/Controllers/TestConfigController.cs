@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.TestConfig;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
 
 namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "ApprovedUser")]
     public class TestConfigController : BaseFunctionalController
     {
         private readonly ITestConfigService _testConfigService;
@@ -37,7 +38,7 @@ namespace SecuroAPI_API.Controllers
         }
 
 
-        [HttpGet("APIID/{id:guid}")]
+        [HttpGet("byApiId/{id:guid}")]
         public async Task<ActionResult<TestConfigDto>> GetByAPIID(Guid id)
         {
             var testConfig = await _testConfigService.GetTestConfigByAPIID(id);
@@ -51,17 +52,19 @@ namespace SecuroAPI_API.Controllers
             
             if (!newTestConfigResult.IsSuccess) return MapErrorToResponse(newTestConfigResult.Errors);
             
-            return CreatedAtAction(nameof(GetById), new { id = newTestConfigResult.Value!.APIID },
+            return CreatedAtAction(nameof(GetById), new { id = newTestConfigResult.Value!.ConfigId },
                 newTestConfigResult.Value);
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<TestConfigDto>> Put(Guid id, [FromBody] UpdateTestConfigDto testConfigDto)
         {
             var registry = await _testConfigService.UpdateTestConfigAsync(id, testConfigDto);
             return ToActionResult(registry);
         }
 
+        [Authorize(Roles = RoleNames.Administrator)]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {

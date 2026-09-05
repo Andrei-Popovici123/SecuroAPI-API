@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.Rating;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
 
 namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "ApprovedUser")]
     public class RatingController : BaseFunctionalController
     {
         private readonly IRatingService _ratingService;
@@ -37,32 +38,43 @@ namespace SecuroAPI_API.Controllers
         }
 
 
-        [HttpGet("APIID/{id:guid}")]
+        [HttpGet("allByApiId/{id:guid}")]
         public async Task<ActionResult<IEnumerable<RatingDto>>> GetByAPIID(Guid id)
         {
             var rating = await _ratingService.GetAllRatingsByAPIID(id);
             return ToActionResult(rating);
         }
-
+        
+        [HttpGet("myLatest")]
+        public async Task<ActionResult<IEnumerable<RatingDto>>> GetMyLatest()
+        {
+            var ratings = await _ratingService.GetMyLatestRatingsAsync();
+            return ToActionResult(ratings);
+        }
+        
         [HttpPost]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<RatingDto>> Post([FromBody] CreateRatingDto ratingDto)
         {
             var newRatingResult = await _ratingService.CreateRatingAsync(ratingDto);
             
             if (!newRatingResult.IsSuccess) return MapErrorToResponse(newRatingResult.Errors);
             
-            return CreatedAtAction(nameof(GetById), new { id = newRatingResult.Value!.APIID },
+            return CreatedAtAction(nameof(GetById), new { id = newRatingResult.Value!.RatingId },
                 newRatingResult.Value);
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<RatingDto>> Put(Guid id, [FromBody] UpdateRatingDto ratingDto)
         {
             var registry = await _ratingService.UpdateRatingAsync(id, ratingDto);
             return ToActionResult(registry);
         }
 
+        
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deletedRating = await _ratingService.DeleteRatingAsync(id);

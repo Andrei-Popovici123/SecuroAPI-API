@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.APIRegistry;
-using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
 
 namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "ApprovedUser")]
     public class APIRegistryController : BaseFunctionalController
     {
         private readonly IAPIRegistryService _apiRegistryService;
@@ -26,13 +26,6 @@ namespace SecuroAPI_API.Controllers
         /// <returns></returns>
         ///
         
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> Get()
-        {
-            var registries = await _apiRegistryService.GetAllAPIRegistriesAsync();
-            return ToActionResult(registries);
-        }
-        
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<APIRegistryDTO>> GetById(Guid id)
         {
@@ -40,12 +33,18 @@ namespace SecuroAPI_API.Controllers
             return ToActionResult(registry);
         }
 
-        
-        [HttpGet("userId/{id}")]
-        
-        public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> GetByUserId(string id)
+        [Authorize(Roles = RoleNames.Administrator)]
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> Get()
         {
-            var registries = await _apiRegistryService.GetAllAPIRegistriesByUserID(id);
+            return ToActionResult(await _apiRegistryService.GetAllAPIRegistriesAsync());
+        }
+
+        [HttpGet("myApis")]
+        
+        public async Task<ActionResult<IEnumerable<APIRegistryDTO>>> GetMyApis()
+        {
+            var registries = await _apiRegistryService.GetMyRegistriesAsync();
             return ToActionResult(registries);
         }
         

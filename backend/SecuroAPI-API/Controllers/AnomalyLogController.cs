@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.AnomalyLog;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
+using SecuroAPI.Common.Constants;
 
 namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = "ApprovedUser")]
     public class AnomalyLogController : BaseFunctionalController
     {
         private readonly IAnomalyLogService _anomalyLogService;
@@ -22,12 +23,17 @@ namespace SecuroAPI_API.Controllers
         /// </summary>
         /// <returns></returns>
         ///
+        [Authorize(Roles = RoleNames.Administrator)]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AnomalyLogDto>>> Get()
         {
             var anomalyLogs = await _anomalyLogService.GetAllAnomalyLogAsync();
             return ToActionResult(anomalyLogs);
         }
+        
+        [HttpGet("myLogs")]
+        public async Task<ActionResult<IEnumerable<AnomalyLogDto>>> GetMine()
+            => ToActionResult(await _anomalyLogService.GetMyAnomalyLogsAsync());
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<AnomalyLogDto>> GetById(Guid id)
@@ -37,7 +43,7 @@ namespace SecuroAPI_API.Controllers
         }
 
 
-        [HttpGet("APIID/{id:guid}")]
+        [HttpGet("allByApiId/{id:guid}")]
         public async Task<ActionResult<IEnumerable<AnomalyLogDto>>> GetByAPIID(Guid id)
         {
             var anomalyLog = await _anomalyLogService.GetAllAnomalyLogByAPIID(id);
@@ -45,6 +51,7 @@ namespace SecuroAPI_API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<AnomalyLogDto>> Post([FromBody] CreateAnomalyLogDto anomalyLogDto)
         {
             var newAnomalyLogResult = await _anomalyLogService.CreateAnomalyLogAsync(anomalyLogDto);
@@ -56,6 +63,7 @@ namespace SecuroAPI_API.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<ActionResult<AnomalyLogDto>> Put(Guid id, [FromBody] UpdateAnomalyLogDto anomalyLogDto)
         {
             var registry = await _anomalyLogService.UpdateAnomalyLogAsync(id, anomalyLogDto);
@@ -63,6 +71,7 @@ namespace SecuroAPI_API.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = RoleNames.Administrator)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var deletedAnomalyLog = await _anomalyLogService.DeleteAnomalyLogAsync(id);

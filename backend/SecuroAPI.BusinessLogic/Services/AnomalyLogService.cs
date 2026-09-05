@@ -10,10 +10,14 @@ namespace SecuroAPI.BusinessLogic.Services;
 public class AnomalyLogService : IAnomalyLogService
 {
     private readonly IAnomalyLogRepository _repository;
+    private readonly IAPIRegistryRepository _apiRepository;
+    private readonly IUserService _userService;
 
-    public AnomalyLogService(IAnomalyLogRepository repository)
+    public AnomalyLogService(IAnomalyLogRepository repository, IAPIRegistryRepository apiRepository, IUserService userService)
     {
         _repository = repository;
+        _apiRepository = apiRepository;
+        _userService = userService;
     }
 
     public async Task<Result<IEnumerable<AnomalyLogDto>>> GetAllAnomalyLogAsync()
@@ -36,25 +40,15 @@ public class AnomalyLogService : IAnomalyLogService
     {
         var log = await _repository.GetByIdAsync(id);
 
-        if (log == null)
+        if (log == null || !await OwnsApi(log.APIID))
             return Result<AnomalyLogDto>
                 .Failure(new Error(ErrorCodes.NotFound, $"Log with the Id' {id} ' was not found"));
 
-        return Result<AnomalyLogDto>.Success(new AnomalyLogDto
-        {
-            AnomalyId = log.AnomalyId,
-            AnomalyType = log.AnomalyType,
-            Severity = log.Severity,
-            NotificationSent = log.NotificationSent,
-            APIID = log.APIID,
-            TimeStamp = log.TimeStamp
-        });
+        return Result<AnomalyLogDto>.Success(MapToDto(log));
     }
 
     public async Task<Result<AnomalyLogDto>> UpdateAnomalyLogAsync(Guid id, UpdateAnomalyLogDto? anomalyLogDto)
     {
-        try
-        {
             if (anomalyLogDto == null) return Result<AnomalyLogDto>.BadRequest();
             var log = await _repository.GetByIdAsync(id);
 
@@ -78,17 +72,10 @@ public class AnomalyLogService : IAnomalyLogService
                 APIID = anomalyLog.APIID,
                 TimeStamp = anomalyLog.TimeStamp,
             });
-        }
-        catch (Exception)
-        {
-            return Result<AnomalyLogDto>.Failure();
-        }
     }
 
     public async Task<Result<AnomalyLogDto>> CreateAnomalyLogAsync(CreateAnomalyLogDto? anomalyLogDto)
     {
-        try
-        {
             if (anomalyLogDto == null) return Result<AnomalyLogDto>.BadRequest();
 
             var log = new AnomalyLog
@@ -112,11 +99,6 @@ public class AnomalyLogService : IAnomalyLogService
                 APIID = anomalyLog.APIID,
                 TimeStamp = anomalyLog.TimeStamp,
             });
-        }
-        catch (Exception)
-        {
-            return Result<AnomalyLogDto>.Failure();
-        }
     }
 
     public async Task<Result> DeleteAnomalyLogAsync(Guid id)
@@ -132,17 +114,36 @@ public class AnomalyLogService : IAnomalyLogService
 
     public async Task<Result<IEnumerable<AnomalyLogDto>>> GetAllAnomalyLogByAPIID(Guid id)
     {
+        if (!await OwnsApi(id))
+            return Result<IEnumerable<AnomalyLogDto>>.Failure(
+                new Error(ErrorCodes.NotFound, $"API with the Id '{id}' was not found"));
+        
         var logs = await _repository.GetAllByAPIID(id);
-        var mappedLogs = logs.Select(l => new AnomalyLogDto()
-        {
-            AnomalyId = l.AnomalyId,
-            AnomalyType = l.AnomalyType,
-            Severity = l.Severity,
-            NotificationSent = l.NotificationSent,
-            APIID = l.APIID,
-            TimeStamp = l.TimeStamp
-        });
 
-        return Result<IEnumerable<AnomalyLogDto>>.Success(mappedLogs);
+        return Result<IEnumerable<AnomalyLogDto>>.Success(logs.Select(MapToDto));
     }
+    
+    public async Task<Result<IEnumerable<AnomalyLogDto>>> GetMyAnomalyLogsAsync()
+    {
+        var userId = _userService.UserId;
+        var since = DateTime.UtcNow.AddMonths(-3);
+
+        var logs = await _repository.GetAllAsync(
+            l => l.ApiRegistry.UserID == userId && l.TimeStamp >= since);
+
+        return Result<IEnumerable<AnomalyLogDto>>.Success(
+            logs.OrderByDescending(l => l.TimeStamp).Select(MapToDto));
+    } 
+    
+    private async Task<bool> OwnsApi(Guid apiId)
+        => await _apiRepository.CheckExistsAsync(a => a.APIID == apiId && a.UserID == _userService.UserId);
+    private static AnomalyLogDto MapToDto(AnomalyLog l) => new()
+    {
+        AnomalyId        = l.AnomalyId,
+        AnomalyType      = l.AnomalyType,
+        Severity         = l.Severity,
+        NotificationSent = l.NotificationSent,
+        APIID            = l.APIID,
+        TimeStamp        = l.TimeStamp
+    };
 }

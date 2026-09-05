@@ -11,6 +11,7 @@ namespace SecuroAPI_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class AuthController : BaseFunctionalController
     {
 
@@ -23,6 +24,7 @@ namespace SecuroAPI_API.Controllers
 
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<GetRegisteredUserDTO>> RegisterUser(RegisterUserDTO registerUserDto)
         {
             var result = await _userService.RegisterUserAsync(registerUserDto, RoleNames.User,UserStatus.New);
@@ -31,6 +33,7 @@ namespace SecuroAPI_API.Controllers
         
         
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult<string>> Login(LoginUserDTO loginUserDto)
         {
             var result = await _userService.LoginUserAsync(loginUserDto);

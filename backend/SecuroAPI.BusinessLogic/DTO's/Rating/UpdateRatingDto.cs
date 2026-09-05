@@ -5,7 +5,6 @@ namespace SecuroAPI.BusinessLogic.DTO_s.Rating;
 public class UpdateRatingDto
 {
     [Required]
-    [Range(0, 100)] 
     public int VulnerabilityScore { get; set; }
 
     [Required]
