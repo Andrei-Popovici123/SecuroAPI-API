@@ -68,7 +68,8 @@ public class DockerContainerRunner : IContainerRunner
                         Memory = 256L * 1024 * 1024,
                         NanoCPUs = 500_000_000,
                         PidsLimit = 64,
-                        AutoRemove = false
+                        AutoRemove = false,
+                        ExtraHosts = new List<string> { "host.docker.internal:host-gateway" }
                     }
                 }, ct);
 

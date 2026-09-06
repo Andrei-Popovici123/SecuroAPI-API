@@ -1,42 +1,95 @@
-import json, os, sys, time
+import sys
+import json
+import argparse
+import requests
 from datetime import datetime, timezone
+import os
 
+from contract import ScanContext
+from checks_headers import HEADER_CHECKS
+from checks_requests import REQUEST_CHECKS
+from checks_active import ACTIVE_CHECKS, run_active
+
+SCHEMA_VERSION = 2
+PASSIVE_CHECKS = [*HEADER_CHECKS, *REQUEST_CHECKS]
+
+
+    
 def log(msg):
+    """Everything human-readable goes to stderr. stdout is JSON only."""
     print(msg, file=sys.stderr)
 
-target = os.environ.get("TARGET_URL", "")
-log(f"[runner] starting scan of {target}")
 
-started = datetime.now(timezone.utc).isoformat()
+def run_passive(ctx):
+    """Run every passive check against the one shared root response."""
+    findings, checks_run, skipped = [], [], []
 
-CHECKS = ["missing-hsts", "missing-csp", "server-banner",
-          "reflected-xss", "sql-injection", "cors-wildcard"]
+    for check in PASSIVE_CHECKS:
+        if not check.can_run(ctx):
+            skipped.append({"check": check.id, "reason": "not applicable to this target"})
+            log(f"SKIP {check.id}")
+            continue
 
-findings = [
-    {"check": "sql-injection", "severity": "Critical",
-     "summary": "Error-based SQL injection in query parameter 'id'",
-     "recommendation": "Use parameterised queries.",
-     "evidence": {"url": f"{target}/items?id=1'", "indicator": "SQL syntax error in response"}},
-    {"check": "missing-csp", "severity": "Medium",
-     "summary": "Content-Security-Policy header absent",
-     "recommendation": "Set a restrictive CSP.",
-     "evidence": {"url": target, "indicator": "header not present"}},
-    {"check": "server-banner", "severity": "Low",
-     "summary": "Server header discloses version",
-     "recommendation": "Suppress version in banner.",
-     "evidence": {"url": target, "indicator": "Server: nginx/1.18.0"}},
-]
+        checks_run.append(check.id)                 # coverage: it ran (before the findings)
+        hits = check.run(ctx)
+        findings += hits
+        log(f"RUN  {check.id}: {len(hits)} finding(s)")
 
-log(f"[runner] {len(CHECKS)} checks executed, {len(findings)} findings")
+    return findings, checks_run, skipped
 
-report = {
-    "schemaVersion": 1,
-    "target": target,
-    "startedAt": started,
-    "finishedAt": datetime.now(timezone.utc).isoformat(),
-    "checksRun": CHECKS,
-    "findings": findings,
-}
 
-json.dump(report, sys.stdout)
-sys.exit(0)
+def scan(target):
+    started = datetime.now(timezone.utc).isoformat()
+    session = requests.Session()
+
+    # passive phase — one root GET feeds every passive check
+    try:
+        ctx = ScanContext.create(target)
+    except Exception as e:
+        log(f"[runner] could not reach target: {e}")
+        raise                                        # job-level failure → non-zero exit
+
+    p_find, p_run, skipped = run_passive(ctx)
+
+    # active phase — derives its own login target from the root
+    a_find, a_run = run_active(target, session)
+    for aid in a_run:
+        log(f"RUN  {aid}: {sum(1 for f in a_find if f['check'] == aid)} finding(s)")
+
+    report = {
+        "schemaVersion": SCHEMA_VERSION,
+        "target": target,
+        "startedAt": started,
+        "finishedAt": datetime.now(timezone.utc).isoformat(),
+        "checksRun": p_run + a_run,                  # coverage across both phases
+        "skipped": skipped,
+        "findings": p_find + a_find,
+    }
+    return report
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("target", nargs="?",
+                        default=os.environ.get("TARGET_URL"))
+    args = parser.parse_args()
+
+    if not args.target:
+        log("[runner] no target: set TARGET_URL or pass an argument")
+        sys.exit(1)
+
+    log(f"[runner] starting scan of {args.target}")
+    try:
+        report = scan(args.target)
+    except Exception as e:
+        log(f"[runner] scan failed: {e}")
+        sys.exit(1)
+
+    json.dump(report, sys.stdout)
+    log(f"[runner] done: {len(report['findings'])} findings, "
+        f"{len(report['checksRun'])} checks, {len(report['skipped'])} skipped")
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
