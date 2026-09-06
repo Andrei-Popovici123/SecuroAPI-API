@@ -18,9 +18,10 @@ public class DockerContainerRunner : IContainerRunner
     }
 
 
-    public async Task<(int ExitCode, string Stdout)> RunAsync(string targetUrl, CancellationToken ct)
+    public async Task<(int ExitCode, string Stdout)> RunAsync(string targetUrl,
+        IReadOnlyList<string> jobEnabledTestCheckIds, CancellationToken ct)
     {
-        var id = await CreateContainerAsync(targetUrl, ct);
+        var id = await CreateContainerAsync(targetUrl, jobEnabledTestCheckIds, ct);
 
         try
         {
@@ -49,11 +50,12 @@ public class DockerContainerRunner : IContainerRunner
         }
     }
 
-    private async Task<string> CreateContainerAsync(string targetUrl, CancellationToken ct)
+    private async Task<string> CreateContainerAsync(string targetUrl, IReadOnlyList<string> enabledChecks,
+        CancellationToken ct)
     {
         const int maxAttempts = 3;
 
-        for (var attempt = 1; ; attempt++)
+        for (var attempt = 1;; attempt++)
         {
             string? id = null;
             try
@@ -61,7 +63,11 @@ public class DockerContainerRunner : IContainerRunner
                 var create = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
                 {
                     Image = Image,
-                    Env = new List<string> { $"TARGET_URL={targetUrl}" },
+                    Env = new List<string>
+                    {
+                        $"TARGET_URL={targetUrl}",
+                        $"ENABLED_CHECKS={string.Join(",", enabledChecks)}",
+                    },
 
                     HostConfig = new HostConfig
                     {
@@ -74,7 +80,7 @@ public class DockerContainerRunner : IContainerRunner
                 }, ct);
 
                 id = create.ID;
-                
+
                 await _dockerClient.Containers.StartContainerAsync(id, null, ct);
                 return id;
             }
@@ -84,6 +90,7 @@ public class DockerContainerRunner : IContainerRunner
                 _logger.LogWarning(e, "Container start attempt {Attempt} failed, retrying", attempt);
                 await Task.Delay(TimeSpan.FromSeconds(2 * attempt), ct);
             }
+            
         }
     }
 

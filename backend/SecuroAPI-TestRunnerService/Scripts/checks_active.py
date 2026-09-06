@@ -44,13 +44,15 @@ ACTIVE_CHECKS = [
 ]
 
 
-def run_active(base_target: str, session):
+def run_active(base_target: str, session, enabled):
     """Active phase. Appends known login paths to the base target and probes each.
     checksRun counts each check ONCE regardless of how many paths were tried."""
     findings, checks_run = [], []
     base = base_target.rstrip("/")
 
     for check in ACTIVE_CHECKS:
+        if enabled is not None and check.id not in enabled:
+            continue
         checks_run.append(check.id)                      # coverage: the check ran
         for path in LOGIN_PATHS:
             probe = ScanContext(target=base + path, session=session, base_response=None)

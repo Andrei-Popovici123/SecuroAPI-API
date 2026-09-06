@@ -4,4 +4,4 @@ public record TestJobMessage(
     Guid JobId,
     Guid APIID,
     string TargetUrl,
-    IReadOnlyList<Guid> EnabledTestIds);
+    IReadOnlyList<string> EnabledTestCheckIds);

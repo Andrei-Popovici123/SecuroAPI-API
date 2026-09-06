@@ -135,11 +135,16 @@ public class TestJobService : ITestJobService
             Status = JobStatus.Queued,
             CreatedAt = DateTime.UtcNow
         });
+        
+        var enabledChecks = config.EnabledTestIds
+            .Where(TestCatalog.ById.ContainsKey)
+            .Select(id => TestCatalog.ById[id].CheckId)
+            .ToList();
 
         try
         {
             await _publisher.PublishAsync(
-                new TestJobMessage(jobId, api.APIID, api.TargetURL, config.EnabledTestIds));
+                new TestJobMessage(jobId, api.APIID, api.TargetURL, enabledChecks));
         }
         catch (Exception)
         {
@@ -242,6 +247,7 @@ public class TestJobService : ITestJobService
             RatingId = Guid.NewGuid(),
             APIID = jobResultDto.APIID,
             NumberOfTests = report.ChecksRun.Count,
+            TotalChecksAtScan = TestCatalog.All.Count,
             VulnerabilityScore = score.VulnerabilityScore,
             OverallScore = score.OverallScore,
             CreatedAt = DateTime.UtcNow,

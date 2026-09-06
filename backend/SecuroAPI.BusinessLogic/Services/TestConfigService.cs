@@ -56,6 +56,10 @@ public class TestConfigService : ITestConfigService
                 return Result<TestConfigDto>.Failure(
                     new Error(ErrorCodes.NotFound, $"TestConfig with the Id '{id}' was not found"));
 
+            var idCheck = ValidateEnabledIds(testConfigDto.EnabledTestIds);
+            if (!idCheck.IsSuccess)
+                return Result<TestConfigDto>.Failure(idCheck.Errors);
+            
             testConfig.EnabledTestIds = testConfigDto.EnabledTestIds;
 
             var updatedTestConfig = await _repository.UpdateAsync(testConfig);
@@ -77,6 +81,10 @@ public class TestConfigService : ITestConfigService
                 return Result<TestConfigDto>.Failure(
                     new Error(ErrorCodes.NotFound, $"API with the Id '{testConfigDto.APIID}' was not found"));
 
+            var idCheck = ValidateEnabledIds(testConfigDto.EnabledTestIds);
+            if (!idCheck.IsSuccess)
+                return Result<TestConfigDto>.Failure(idCheck.Errors); 
+            
             var testConfig = new TestConfig
             {
                 APIID = testConfigDto.APIID,
@@ -130,4 +138,18 @@ public class TestConfigService : ITestConfigService
         APIID = tc.APIID,
         EnabledTestIds = tc.EnabledTestIds,
     };
+    
+    private static Result ValidateEnabledIds(IReadOnlyList<Guid> ids)
+    {
+        if (ids.Count == 0)
+            return Result.BadRequest(new Error(ErrorCodes.Validation,
+                "At least one test must be enabled."));
+
+        var unknown = ids.Where(id => !TestCatalog.ById.ContainsKey(id)).ToList();
+        if (unknown.Count > 0)
+            return Result.BadRequest(new Error(ErrorCodes.Validation,
+                $"Unknown test ids: {string.Join(", ", unknown)}"));
+
+        return Result.Success();
+    }
 }

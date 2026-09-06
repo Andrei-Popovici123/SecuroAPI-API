@@ -78,7 +78,7 @@ public class TestJobConsumer
             using var scanCts = CancellationTokenSource.CreateLinkedTokenSource(ea.CancellationToken);
             scanCts.CancelAfter(TimeSpan.FromMinutes(ScanTimeoutInMinutes));
             
-            var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, scanCts.Token);
+            var (exitCode, stdout) = await _containerRunner.RunAsync(job.TargetUrl, job.EnabledTestCheckIds,scanCts.Token);
 
             await _publisher.PublishAsync(new TestResultMessage(job.JobId, job.APIID, exitCode, stdout),ea.CancellationToken);
 

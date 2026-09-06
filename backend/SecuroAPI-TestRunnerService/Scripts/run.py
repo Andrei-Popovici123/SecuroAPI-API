@@ -19,12 +19,18 @@ def log(msg):
     """Everything human-readable goes to stderr. stdout is JSON only."""
     print(msg, file=sys.stderr)
 
+def enabled_filter():
+    """Parse ENABLED_CHECKS csv into a set. None = no filter = run everything."""
+    raw = os.environ.get("ENABLED_CHECKS", "")
+    return {c.strip() for c in raw.split(",") if c.strip()} if raw else None
 
-def run_passive(ctx):
+def run_passive(ctx,enabled):
     """Run every passive check against the one shared root response."""
     findings, checks_run, skipped = [], [], []
 
     for check in PASSIVE_CHECKS:
+        if enabled is not None and check.id not in enabled:
+            continue
         if not check.can_run(ctx):
             skipped.append({"check": check.id, "reason": "not applicable to this target"})
             log(f"SKIP {check.id}")
@@ -38,7 +44,7 @@ def run_passive(ctx):
     return findings, checks_run, skipped
 
 
-def scan(target):
+def scan(target, enabled):
     started = datetime.now(timezone.utc).isoformat()
     session = requests.Session()
 
@@ -49,10 +55,10 @@ def scan(target):
         log(f"[runner] could not reach target: {e}")
         raise                                        # job-level failure → non-zero exit
 
-    p_find, p_run, skipped = run_passive(ctx)
+    p_find, p_run, skipped = run_passive(ctx, enabled)
 
     # active phase — derives its own login target from the root
-    a_find, a_run = run_active(target, session)
+    a_find, a_run = run_active(target, session, enabled)
     for aid in a_run:
         log(f"RUN  {aid}: {sum(1 for f in a_find if f['check'] == aid)} finding(s)")
 
@@ -79,8 +85,9 @@ def main():
         sys.exit(1)
 
     log(f"[runner] starting scan of {args.target}")
+    enabled = enabled_filter()
     try:
-        report = scan(args.target)
+        report = scan(args.target,enabled)
     except Exception as e:
         log(f"[runner] scan failed: {e}")
         sys.exit(1)
