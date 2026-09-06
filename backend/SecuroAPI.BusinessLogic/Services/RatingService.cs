@@ -142,6 +142,7 @@ public class RatingService : IRatingService
         VulnerabilityScore = r.VulnerabilityScore,
         NumberOfTests      = r.NumberOfTests,
         OverallScore       = r.OverallScore,
+        CoveragePercent = r.TotalChecksAtScan == 0 ? 0 : (int)Math.Round(100.0 * r.NumberOfTests / r.TotalChecksAtScan ),
         APIID              = r.APIID,
         CreatedAt          = r.CreatedAt,
         LastModifiedAt     = r.LastModifiedAt

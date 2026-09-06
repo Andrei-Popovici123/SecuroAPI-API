@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SecuroAPI.BusinessLogic.DTO_s.TestConfig;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.Common.Constants;
+using SecuroAPI.Common.Models;
 
 namespace SecuroAPI_API.Controllers
 {
@@ -43,6 +44,13 @@ namespace SecuroAPI_API.Controllers
         {
             var testConfig = await _testConfigService.GetTestConfigByAPIID(id);
             return ToActionResult(testConfig);
+        }
+
+        [HttpGet("catalog")]
+        [Authorize]
+        public ActionResult<IReadOnlyList<CatalogEntry>> GetCatalog()
+        {
+            return Ok(TestCatalog.All);
         }
 
         [HttpPost]

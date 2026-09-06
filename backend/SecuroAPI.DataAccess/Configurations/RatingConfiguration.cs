@@ -13,7 +13,8 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
 
         builder.Property(x => x.VulnerabilityScore)
             .IsRequired();
-
+        builder.Property(x => x.TotalChecksAtScan)
+            .IsRequired();
         builder.Property(x => x.NumberOfTests)
             .IsRequired();
 
@@ -22,11 +23,10 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
 
         builder.Property(x => x.CreatedAt)
             .IsRequired();
-        
+
         builder.HasOne(x => x.Registry)
-            .WithMany(r=>r.Ratings)
+            .WithMany(r => r.Ratings)
             .HasForeignKey(x => x.APIID)
             .OnDelete(DeleteBehavior.Cascade);
-        
     }
 }

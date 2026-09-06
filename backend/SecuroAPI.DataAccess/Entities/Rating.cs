@@ -8,6 +8,7 @@ public class Rating
     
     public int NumberOfTests { get; set; }
     
+    public int TotalChecksAtScan { get; set; }   
     public int OverallScore { get; set; }
     
     public Guid APIID { get; set; }

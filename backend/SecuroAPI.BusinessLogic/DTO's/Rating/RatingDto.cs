@@ -9,7 +9,9 @@ public class RatingDto
     public int VulnerabilityScore { get; set; }
         
     public int NumberOfTests { get; set; }
-        
+
+    public int CoveragePercent { get; set; }
+
     public int OverallScore { get; set; }
     
     public Guid APIID { get; set; }
