@@ -6,20 +6,42 @@ using SecuroAPI.BusinessLogic.Services.Interfaces;
 namespace SecuroAPI_API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class MonitoringController: BaseFunctionalController
+[Authorize(Policy = "ApprovedUser")]
+public class MonitoringController(IMonitoredEndpointService service)
+    : BaseFunctionalController
 {
-
-    private readonly IProbeService _probe;
-
-    public MonitoringController(IProbeService probe)
+    [HttpGet("api/{apiId:guid}")]
+    public async Task<ActionResult<IEnumerable<MonitoredEndpointDto>>> GetAllByApi(Guid apiId)
     {
-        _probe = probe;
+        return ToActionResult(await service.GetAllByAPIID(apiId));
     }
-
-    [HttpGet]
-    [AllowAnonymous]
-    public async Task<ActionResult<ProbeResult>> Get(
-        [FromQuery] string url, CancellationToken ct)
-        => Ok(await _probe.ProbeAsync(url, ct));
-
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<MonitoredEndpointDto>> GetById(Guid id)
+    {
+      return ToActionResult(await service.GetByIdAsync(id));
+    }
+    [HttpPost("api/{apiId:guid}")]
+    public async Task<ActionResult<MonitoredEndpointDto>> Create(
+        Guid apiId, [FromBody] CreateMonitoredEndpointDto dto)
+    {
+        return ToActionResult(await service.CreateAsync(apiId, dto));
+    }
+    [HttpPatch("{id:guid}/active")]
+    public async Task<ActionResult<MonitoredEndpointDto>> SetActive(
+        Guid id, [FromQuery] bool isActive)
+    {
+        return ToActionResult(await service.SetActiveAsync(id, isActive));
+    }
+    
+    [HttpPost("{id:guid}/probe")]
+    public async Task<ActionResult<ProbeResult>> ProbeNow(Guid id, CancellationToken ct)
+    {
+        return ToActionResult(await service.ProbeNowAsync(id, ct));
+    }
+    
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        return ToActionResult(await service.DeleteAsync(id));
+    }
 }

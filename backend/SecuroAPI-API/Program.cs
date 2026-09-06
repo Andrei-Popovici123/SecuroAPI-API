@@ -134,6 +134,8 @@ builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IScoreReportRepository, ScoreReportRepository>();
 builder.Services.AddScoped<ITestConfigRepository, TestConfigRepository>();
 builder.Services.AddScoped<ITestJobRepository, TestJobRepository>();
+builder.Services.AddScoped<IMonitoredEndpointRepository, MonitoredEndpointRepository>();
+builder.Services.AddScoped<ITelemetryRepository, TelemetryRepository>();
 
 builder.Services.AddScoped<IAPIRegistryService, APIRegistryService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -147,6 +149,8 @@ builder.Services.AddScoped<ITestJobService, TestJobService>();
 builder.Services.AddScoped<ITestJobCrudService, TestJobCrudService>();
 builder.Services.AddScoped<IScoringService, ScoringService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
+builder.Services.AddScoped<ITelemetryService, TelemetryService>();
+builder.Services.AddScoped<IMonitoredEndpointService, MonitoredEndpointService>();
 builder.Services.AddHttpClient<IProbeService, ProbeService>(c =>
     {
         c.Timeout = TimeSpan.FromSeconds(10);
