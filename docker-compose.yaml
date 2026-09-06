@@ -47,13 +47,18 @@ services:
       rabbitmq:  { condition: service_healthy }
 
   monitoring:
-    build: { context: ./backend, dockerfile: SecuroAPI-MonitoringService/Dockerfile }
-    environment:
-      RabbitMq__Host: rabbitmq
-      RabbitMq__Username: "${RABBITMQ_USER}"
-      RabbitMq__Password: "${RABBITMQ_PASS}"
+    build:
+      context: ./backend
+      dockerfile: SecuroAPI.Monitoring/Dockerfile
     depends_on:
-      rabbitmq:  { condition: service_healthy }
+      sqlserver:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      ConnectionStrings__SecuroAPIDbContext: "Server=sqlserver,1433;Database=SecuroAPIDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
+      Monitoring__TickSeconds=60
+    restart: unless-stopped
       
   socket-proxy:
     image: tecnativa/docker-socket-proxy:latest

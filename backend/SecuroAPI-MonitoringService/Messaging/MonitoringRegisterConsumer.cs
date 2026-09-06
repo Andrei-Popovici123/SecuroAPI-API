@@ -10,9 +10,9 @@ namespace SecuroAPI_MonitoringService.Messaging;
 public class MonitoringRegisterConsumer
 {
     private readonly RabbitMqConnection _connection;
-    private readonly ILogger<Worker> _logger;
+    private readonly ILogger<MonitoringWorker> _logger;
 
-    public MonitoringRegisterConsumer(RabbitMqConnection connection, ILogger<Worker> logger)
+    public MonitoringRegisterConsumer(RabbitMqConnection connection, ILogger<MonitoringWorker> logger)
     {
         _connection = connection;
         _logger = logger;

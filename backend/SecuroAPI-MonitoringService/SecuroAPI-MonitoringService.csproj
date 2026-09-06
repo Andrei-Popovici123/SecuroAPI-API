@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SecuroAPI.BusinessLogic\SecuroAPI.BusinessLogic.csproj" />
     <ProjectReference Include="..\SecuroAPI.Contracts\SecuroAPI.Contracts.csproj" />
   </ItemGroup>
 

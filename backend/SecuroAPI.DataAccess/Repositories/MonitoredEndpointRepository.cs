@@ -21,4 +21,12 @@ public class MonitoredEndpointRepository : BaseRepository<MonitoredEndpoint>, IM
     public async Task<int> CountActiveByAPIID(Guid apiId)
         => await _dbContext.MonitoredEndpoints
             .CountAsync(e => e.APIID == apiId && e.IsActive);
+    public async Task<List<MonitoredEndpoint>> GetDueAsync(DateTime now, int batchSize)
+        => await _dbContext.MonitoredEndpoints
+            .Where(e => e.IsActive &&
+                        (e.LastCheckedAt == null ||
+                         EF.Functions.DateDiffSecond(e.LastCheckedAt.Value, now) >= e.IntervalSeconds))
+            .OrderBy(e => e.LastCheckedAt)
+            .Take(batchSize)
+            .ToListAsync();
 }
