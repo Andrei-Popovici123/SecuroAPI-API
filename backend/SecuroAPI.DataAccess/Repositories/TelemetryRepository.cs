@@ -24,4 +24,10 @@ public class TelemetryRepository : ITelemetryRepository
             .OrderBy(t => t.CheckedAt)
             .AsNoTracking()
             .ToListAsync();
+    public async Task<List<TelemetryPoint>> GetAllByAPIIDSince(Guid apiId, DateTime since)
+        => await _dbContext.TelemetryPoints
+            .Where(t => t.Endpoint.APIID == apiId && t.CheckedAt >= since)
+            .AsNoTracking()
+            .ToListAsync();
+    
 }

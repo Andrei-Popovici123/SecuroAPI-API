@@ -102,7 +102,7 @@ public class MonitoredEndpointService : IMonitoredEndpointService
             APIID           = apiId,
             Url             = canonical,
             Label           = endpointDto.Label,
-            IntervalSeconds = endpointDto.IntervalSeconds,
+            IntervalSeconds = 60,
             IsActive        = true,
             CreatedAt       = DateTime.UtcNow
         });

@@ -6,4 +6,5 @@ public interface ITelemetryRepository
 {
     Task AddAsync(TelemetryPoint point);
     Task<IEnumerable<TelemetryPoint>> GetSeriesAsync(Guid endpointId, DateTime since);
+    Task<List<TelemetryPoint>> GetAllByAPIIDSince(Guid apiId, DateTime since);
 }

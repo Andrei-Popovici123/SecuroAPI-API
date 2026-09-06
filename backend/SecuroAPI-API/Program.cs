@@ -151,6 +151,7 @@ builder.Services.AddScoped<IScoringService, ScoringService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<ITelemetryService, TelemetryService>();
 builder.Services.AddScoped<IMonitoredEndpointService, MonitoredEndpointService>();
+builder.Services.AddScoped<IMonitoringDashboardService, MonitoringDashboardService>();
 builder.Services.AddHttpClient<IProbeService, ProbeService>(c =>
     {
         c.Timeout = TimeSpan.FromSeconds(10);
