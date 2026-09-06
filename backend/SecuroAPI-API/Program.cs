@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using DnsClient;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -122,6 +123,8 @@ builder.Services.AddScoped<TokenRevocationEvents>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+
+
 // Service and Repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 builder.Services.AddScoped<IRepository<APIRegistry>, BaseRepository<APIRegistry>>();
@@ -144,6 +147,16 @@ builder.Services.AddScoped<ITestJobService, TestJobService>();
 builder.Services.AddScoped<ITestJobCrudService, TestJobCrudService>();
 builder.Services.AddScoped<IScoringService, ScoringService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
+builder.Services.AddHttpClient<IProbeService, ProbeService>(c =>
+    {
+        c.Timeout = TimeSpan.FromSeconds(10);
+        c.DefaultRequestHeaders.UserAgent.ParseAdd("SecuroAPI-Monitor/1.0");
+    })
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        AllowAutoRedirect = false,
+        AutomaticDecompression = DecompressionMethods.All
+    });
 
 
 var app = builder.Build();
