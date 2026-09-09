@@ -1,28 +1,91 @@
+/* Fonts must be imported before Tailwind. IBM Plex = engineered, infra-tooling
+   feel; Mono is reserved for machine data (tokens, DNS, evidence, latency). */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  /* Core Colors */
-  --color-brand-primary: #1A2332;
-  --color-brand-secondary: #DC2626;
+  /* base — navy console (not pure black; surfaces carry depth) */
+  --color-bg:        #0B0F14;   /* app background */
+  --color-surface:   #111827;   /* cards, nav */
+  --color-surface-2: #1A2332;   /* raised / hover */
+  --color-border:    #1F2A3C;   /* hairlines */
+  --color-text:      #E2E8F0;   /* primary text */
+  --color-text-dim:  #94A3B8;   /* labels, secondary */
 
-  /* UI Colors */
-  --color-nav-bg: #111827;
-  --color-main-bg: #0B0F14;
-  --color-main-text: #E2E8F0;
+  /* the one warm accent — real danger + destructive only */
+  --color-danger:    #DC2626;
 
+  /* status / positive — cool, so red stays the only warm signal */
+  --color-ok:        #10B981;
+  --color-warn:      #F59E0B;
+  --color-info:      #38BDF8;   /* interactive accent, links, focus ring */
+
+  /* severity palette — maps 1:1 to the Severity enum */
+  --color-sev-low:      #38BDF8;
+  --color-sev-medium:   #F59E0B;
+  --color-sev-high:     #FB7185;
+  --color-sev-critical: #DC2626;
+
+  /* type */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+  /* one radius scale, one motion token (fixed: was "9 s") */
+  --radius-card: 0.75rem;
+  --animate-spin-slow: spin 9s linear infinite;
 }
-@theme{
 
-  --animate-spin-slow: spin 9 s linear infinite;
-}
 @layer base {
   body {
-    @apply bg-main-bg text-main-text antialiased;
+    @apply bg-bg text-text antialiased font-sans;
+  }
+
+  /* visible keyboard focus everywhere — accessibility floor */
+  :focus-visible {
+    outline: 2px solid var(--color-info);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-info) 30%, transparent);
+  }
+
+  /* quiet dark scrollbar so it doesn't fight the console */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-2) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-@layer components{
-  .btn-blue{
-    @apply bg-blue-700 text-2xl p-4 rounded-lg text-main-text;
+@layer components {
+  /* reusable primitives — @apply works here because this is the main stylesheet
+     (component-scoped .css files can't @apply without @reference) */
+  .card {
+    @apply rounded-[var(--radius-card)] border border-border bg-surface;
+  }
+  .field {
+    @apply w-full rounded-md border border-border bg-bg px-3 py-2 text-sm text-text
+    placeholder:text-text-dim focus:border-info focus:outline-none;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium text-text-dim;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-info px-4 py-2
+    text-sm font-medium text-bg transition hover:brightness-110
+    disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-border
+    px-4 py-2 text-sm text-text-dim transition hover:border-info hover:text-text;
   }
 }
