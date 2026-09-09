@@ -1,0 +1,45 @@
+<div class="grid min-h-screen place-items-center bg-bg p-4">
+  <div class="card w-full max-w-sm p-6">
+    <div class="mb-6 flex items-center gap-2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2 4 5v6c0 5 3.5 8 8 11 4.5-3 8-6 8-11V5l-8-3Z" fill="var(--color-surface-2)" stroke="var(--color-danger)" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="m8.5 12 2.5 2.5 4.5-5" stroke="var(--color-danger)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="font-semibold tracking-tight">Securo<span class="text-text-dim">API</span></span>
+    </div>
+
+    <h1 class="mb-1 text-lg font-semibold">Sign in</h1>
+    <p class="mb-5 text-sm text-text-dim">Access your security console.</p>
+
+    <div class="flex flex-col gap-3">
+      <div>
+        <label class="label" for="email">Email</label>
+        <input id="email" class="field" type="email" autocomplete="email"
+               placeholder="you@company.com"
+               [value]="email()" (input)="email.set(val($event))"
+               (keyup.enter)="submit()" />
+      </div>
+      <div>
+        <label class="label" for="password">Password</label>
+        <input id="password" class="field" type="password" autocomplete="current-password"
+               placeholder="••••••••••••"
+               [value]="password()" (input)="password.set(val($event))"
+               (keyup.enter)="submit()" />
+      </div>
+
+      @if (error()) {
+        <p class="text-sm text-danger">{{ error() }}</p>
+      }
+
+      <button class="btn-primary mt-1" (click)="submit()" [disabled]="loading()">
+        @if (loading()) { <app-spinner [size]="16" /> }
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </div>
+
+    <p class="mt-5 text-center text-sm text-text-dim">
+      No account?
+      <a routerLink="/register" class="text-info hover:underline">Create one</a>
+    </p>
+  </div>
+</div>

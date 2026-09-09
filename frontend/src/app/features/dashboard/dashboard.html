@@ -1,0 +1,43 @@
+<div class="mx-auto max-w-6xl">
+  <!-- header -->
+  <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-semibold">Dashboard</h1>
+      <p class="mt-1 text-sm text-text-dim">
+        @if (!loading() && cards().length) {
+          {{ cards().length }} target{{ cards().length === 1 ? '' : 's' }} ·
+          {{ scannedCount() }} scanned
+          @if (avgScore() !== null) { · avg score <span class="font-mono text-text">{{ avgScore() }}</span> }
+        } @else {
+          Your services' security posture at a glance.
+        }
+      </p>
+    </div>
+    <a routerLink="/targets/new" class="btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Register target
+    </a>
+  </div>
+
+  <!-- states -->
+  @if (loading()) {
+    <div class="grid place-items-center py-20"><app-spinner [size]="28" /></div>
+  } @else if (error()) {
+    <div class="card p-6 text-sm text-danger">{{ error() }}</div>
+  } @else if (!cards().length) {
+    <app-empty-state
+      title="No targets yet"
+      message="Register an API or web app you're authorised to test, verify ownership, and run your first scan."
+    >
+      <a routerLink="/targets/new" class="btn-primary">Register your first target</a>
+    </app-empty-state>
+  } @else {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (c of cards(); track c.registry.apiid) {
+        <app-target-card [registry]="c.registry" [latest]="c.latest" [history]="c.history" />
+      }
+    </div>
+  }
+</div>

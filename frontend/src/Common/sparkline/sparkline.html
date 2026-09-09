@@ -1,0 +1,13 @@
+@if (hasData()) {
+  <svg [attr.width]="width()" [attr.height]="height()" [attr.viewBox]="'0 0 ' + width() + ' ' + height()" fill="none">
+    <polyline
+      [attr.points]="points()"
+      [attr.stroke]="color()"
+      stroke-width="1.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+} @else {
+  <span class="text-xs text-text-dim">Not enough history</span>
+}

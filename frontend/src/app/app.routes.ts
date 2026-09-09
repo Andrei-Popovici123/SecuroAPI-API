@@ -8,22 +8,35 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    loadComponent: () => import('./features/auth/login').then((m) => m.Login),
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {
     path: 'register',
-    loadComponent: () => import('./features/auth/register').then((m) => m.Register),
+    loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
   },
   {
     path: 'pending',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/auth/pending').then((m) => m.Pending),
+    loadComponent: () => import('./features/auth/pending/pending').then((m) => m.Pending),
   },
   {
     path: 'dashboard',
     canActivate: [approvedGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  // targets — order matters: 'new' before ':id' so it isn't captured as an id
+  // {
+  //   path: 'targets/new',
+  //   canActivate: [approvedGuard],
+  //   loadComponent: () =>
+  //     import('./features/targets/target-register/target-register').then((m) => m.TargetRegister),
+  // },
+  // {
+  //   path: 'targets/:id',
+  //   canActivate: [approvedGuard],
+  //   loadComponent: () =>
+  //     import('./features/targets/target-detail/target-detail').then((m) => m.TargetDetail),
+  // },
   {
     path: 'admin',
     canActivate: [adminGuard],

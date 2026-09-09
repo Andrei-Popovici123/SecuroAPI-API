@@ -1,0 +1,26 @@
+<div class="grid min-h-[70vh] place-items-center p-4">
+  <div class="card w-full max-w-md p-8 text-center">
+    <div class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full" style="background: color-mix(in srgb, var(--color-warn) 14%, transparent)">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" stroke="var(--color-warn)" stroke-width="1.7"/>
+        <path d="M12 7v5l3 2" stroke="var(--color-warn)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <h1 class="mb-1 text-lg font-semibold">Awaiting approval</h1>
+    <p class="mb-4 text-sm text-text-dim">
+      Your account is created but an administrator hasn't approved it yet. You'll be
+      sent to sign in again the moment it's approved.
+    </p>
+
+    <div class="mb-6 flex items-center justify-center gap-2">
+      <span class="text-sm text-text-dim">Current status</span>
+      <app-status-pill [label]="meta().label" [tone]="meta().tone" />
+    </div>
+
+    <div class="flex justify-center gap-2">
+      <button class="btn-primary" (click)="refresh()">Check status</button>
+      <button class="btn-ghost" (click)="logout()">Sign out</button>
+    </div>
+  </div>
+</div>
