@@ -1,0 +1,52 @@
+@if (loading()) {
+  <div class="grid place-items-center py-12"><app-spinner [size]="24" /></div>
+} @else {
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <p class="text-sm text-text-dim">
+      Pick the checks to run against this target. Choose between 1 and 10.
+    </p>
+    <span class="shrink-0 font-mono text-sm" [class.text-danger]="count() > 10">
+      {{ count() }} / 10
+    </span>
+  </div>
+
+  <div class="flex flex-col gap-5">
+    @for (g of groups(); track g.category) {
+      <div>
+        <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-text-dim">{{ g.label }}</h3>
+        <div class="flex flex-col gap-2">
+          @for (e of g.entries; track e.id) {
+            <label
+              class="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors"
+              [class.border-border]="!isSelected(e.id)"
+              [class.bg-surface]="!isSelected(e.id)"
+              [style.border-color]="isSelected(e.id) ? 'color-mix(in srgb, var(--color-info) 45%, transparent)' : null"
+              [style.background]="isSelected(e.id) ? 'color-mix(in srgb, var(--color-info) 8%, transparent)' : null"
+            >
+              <input type="checkbox" class="mt-0.5 accent-[var(--color-info)]"
+                     [checked]="isSelected(e.id)" (change)="toggle(e.id)" />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-medium">{{ e.name }}</span>
+                  <app-severity-badge [severity]="e.severity" />
+                </div>
+                @if (e.description) {
+                  <p class="mt-0.5 text-xs text-text-dim">{{ e.description }}</p>
+                }
+              </div>
+            </label>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="mt-5 flex items-center gap-3">
+    <button class="btn-primary" (click)="save()" [disabled]="saving() || !canSave()">
+      @if (saving()) { <app-spinner [size]="16" /> }
+      {{ saving() ? 'Saving…' : 'Save configuration' }}
+    </button>
+    @if (savedOk()) { <span class="text-sm" style="color: var(--color-ok)">Saved.</span> }
+    @if (error()) { <span class="text-sm text-danger">{{ error() }}</span> }
+  </div>
+}

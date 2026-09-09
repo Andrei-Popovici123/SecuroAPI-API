@@ -1,0 +1,57 @@
+@if (isVerified()) {
+  <div class="flex items-center gap-3 rounded-md border p-4"
+       style="border-color: color-mix(in srgb, var(--color-ok) 30%, transparent); background: color-mix(in srgb, var(--color-ok) 10%, transparent)">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="var(--color-ok)" stroke-width="1.7"/>
+      <path d="m8.5 12 2.5 2.5 4.5-5" stroke="var(--color-ok)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <p class="text-sm font-medium" style="color: var(--color-ok)">Domain verified</p>
+      <p class="text-xs text-text-dim">Verified {{ registry().verifiedAt }} — pending admin approval.</p>
+    </div>
+  </div>
+} @else {
+  <p class="mb-4 text-sm text-text-dim">
+    Add the TXT record below to your domain's DNS, then run the check. This proves
+    you control the domain — no HTTP request is made to your target.
+  </p>
+
+  <!-- record name -->
+  <label class="label">Record name</label>
+  <div class="mb-3 flex items-center gap-2">
+    <code class="field font-mono text-xs">{{ recordName() || '—' }}</code>
+    <button class="btn-ghost shrink-0" (click)="copy('name')">
+      {{ copied() === 'name' ? 'Copied' : 'Copy' }}
+    </button>
+  </div>
+
+  <!-- record value -->
+  <label class="label">Record value (TXT)</label>
+  <div class="mb-4 flex items-center gap-2">
+    <code class="field font-mono text-xs">{{ recordValue() }}</code>
+    <button class="btn-ghost shrink-0" (click)="copy('value')">
+      {{ copied() === 'value' ? 'Copied' : 'Copy' }}
+    </button>
+  </div>
+
+  <button class="btn-primary" (click)="verify()" [disabled]="loading()">
+    @if (loading()) { <app-spinner [size]="16" /> }
+    {{ loading() ? 'Checking DNS…' : 'Verify domain' }}
+  </button>
+
+  <!-- outcome: a "not found yet" is a normal Success(false), not an error -->
+  @if (result() && !result()!.verified) {
+    <div class="mt-4 rounded-md border border-border bg-bg p-3 text-xs">
+      <p class="mb-1 text-warn">Record not found yet.</p>
+      @if (result()!.message) { <p class="text-text-dim">{{ result()!.message }}</p> }
+      <p class="mt-2 text-text-dim">Looked for
+        <code class="font-mono text-text">{{ result()!.recordName }}</code> =
+        <code class="font-mono text-text">{{ result()!.expectedValue }}</code>.
+        DNS can take a few minutes to propagate.
+      </p>
+    </div>
+  }
+  @if (error()) {
+    <p class="mt-3 text-sm text-danger">{{ error() }}</p>
+  }
+}

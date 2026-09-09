@@ -25,18 +25,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
   // targets — order matters: 'new' before ':id' so it isn't captured as an id
-  // {
-  //   path: 'targets/new',
-  //   canActivate: [approvedGuard],
-  //   loadComponent: () =>
-  //     import('./features/targets/target-register/target-register').then((m) => m.TargetRegister),
-  // },
-  // {
-  //   path: 'targets/:id',
-  //   canActivate: [approvedGuard],
-  //   loadComponent: () =>
-  //     import('./features/targets/target-detail/target-detail').then((m) => m.TargetDetail),
-  // },
+  {
+    path: 'targets/new',
+    canActivate: [approvedGuard],
+    loadComponent: () =>
+      import('./features/targets/target-register/target-register').then((m) => m.TargetRegister),
+  },
+  {
+    path: 'targets/:id',
+    canActivate: [approvedGuard],
+    loadComponent: () =>
+      import('./features/targets/target-detail/target-detail').then((m) => m.TargetDetail),
+  },
   {
     path: 'admin',
     canActivate: [adminGuard],

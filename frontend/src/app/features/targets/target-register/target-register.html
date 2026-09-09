@@ -1,0 +1,43 @@
+<div class="mx-auto max-w-lg">
+  <a routerLink="/dashboard" class="mb-4 inline-flex items-center gap-1 text-sm text-text-dim hover:text-text">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Dashboard
+  </a>
+
+  <div class="card p-6">
+    <h1 class="mb-1 text-lg font-semibold">Register a target</h1>
+    <p class="mb-5 text-sm text-text-dim">
+      Register an API or web app you own or are authorised to test. Next you'll prove
+      control of the domain via a DNS record.
+    </p>
+
+    <div class="flex flex-col gap-3">
+      <div>
+        <label class="label" for="url">Target URL</label>
+        <input id="url" class="field font-mono" type="url" placeholder="https://api.example.com"
+               [value]="targetURL()" (input)="targetURL.set(val($event))" (keyup.enter)="submit()" />
+        <p class="mt-1 text-xs text-text-dim">Must be http(s). Bare IPs can't be verified, so they're rejected.</p>
+      </div>
+
+      <div>
+        <label class="label" for="auth">Auth type <span class="text-text-dim">(optional)</span></label>
+        <select id="auth" class="field" [value]="authType()" (change)="authType.set(val($event))">
+          @for (opt of authOptions; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
+      </div>
+
+      @if (error()) {
+        <p class="text-sm text-danger">{{ error() }}</p>
+      }
+
+      <button class="btn-primary mt-1" (click)="submit()" [disabled]="loading() || !valid()">
+        @if (loading()) { <app-spinner [size]="16" /> }
+        {{ loading() ? 'Registering…' : 'Register target' }}
+      </button>
+    </div>
+  </div>
+</div>

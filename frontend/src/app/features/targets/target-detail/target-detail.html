@@ -1,0 +1,47 @@
+<div class="mx-auto max-w-3xl">
+  <a routerLink="/dashboard" class="mb-4 inline-flex items-center gap-1 text-sm text-text-dim hover:text-text">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Dashboard
+  </a>
+
+  @if (loading()) {
+    <div class="grid place-items-center py-20"><app-spinner [size]="28" /></div>
+  } @else if (error()) {
+    <div class="card p-6 text-sm text-danger">{{ error() }}</div>
+  } @else if (registry(); as r) {
+    <!-- header -->
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div class="min-w-0">
+        <h1 class="truncate font-mono text-lg" [title]="r.targetURL">{{ displayUrl() }}</h1>
+        <div class="mt-1 flex items-center gap-2">
+          <app-status-pill [label]="statusMeta().label" [tone]="statusMeta().tone" />
+          @if (isVerified()) {
+            <span class="inline-flex items-center gap-1 text-xs" style="color: var(--color-ok)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              domain verified
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- tabs -->
+    <div class="mb-5 flex gap-1 border-b border-border">
+      @for (t of tabs; track t.key) {
+        <button class="tab" [class.active]="tab() === t.key" (click)="setTab(t.key)">{{ t.label }}</button>
+      }
+    </div>
+
+    <!-- panels -->
+    <div class="card p-5">
+      @switch (tab()) {
+        @case ('verify') { <app-verify-panel [registry]="r" (verified)="onVerified()" /> }
+        @case ('config') { <app-test-config-panel [apiid]="r.apiid" /> }
+        @case ('scans') { <app-scans-panel [registry]="r" /> }
+        @case ('monitoring') { <app-monitoring-panel [apiid]="r.apiid" /> }
+      }
+    </div>
+  }
+</div>

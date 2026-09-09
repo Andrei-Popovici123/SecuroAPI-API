@@ -50,5 +50,6 @@ export const OwaspCategoryLabel: Record<OwaspCategory, string> = {
 };
 
 // A job is done (terminal) — stop polling.
-export const isTerminal = (s: JobStatus): boolean =>
+// A job is done (terminal) — stop polling.
+export const isTerminal = (s: number): boolean =>
   s === JobStatus.Completed || s === JobStatus.Failed;

@@ -1,0 +1,11 @@
+.tab {
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--color-text-dim);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.tab:hover:not(:disabled) { color: var(--color-text); }
+.tab.active { color: var(--color-text); border-bottom-color: var(--color-info); }
+.tab:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -1,0 +1,84 @@
+<!-- run control -->
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <p class="text-sm text-text-dim">
+      Runs the configured checks in an isolated container, then scores the findings.
+    </p>
+    @if (registry().status !== 'Approved') {
+      <p class="mt-1 text-xs text-warn">Target must be approved before it can be scanned.</p>
+    }
+  </div>
+  <button class="btn-primary shrink-0" (click)="runScan()" [disabled]="!canScan()">
+    @if (running()) { <app-spinner [size]="16" /> }
+    {{ running() ? 'Scanning…' : 'Run scan' }}
+  </button>
+</div>
+
+@if (error()) {
+  <p class="mb-4 text-sm text-danger">{{ error() }}</p>
+}
+
+<!-- job history -->
+@if (loading()) {
+  <div class="grid place-items-center py-10"><app-spinner [size]="24" /></div>
+} @else if (!jobs().length) {
+  <p class="py-8 text-center text-sm text-text-dim">No scans yet.</p>
+} @else {
+  <div class="mb-6 flex flex-col gap-2">
+    @for (job of jobs(); track job.jobId) {
+      <div class="flex items-center justify-between gap-3 rounded-md border bg-surface p-3"
+           [style.border-color]="selectedJobId() === job.jobId ? 'var(--color-info)' : 'var(--color-border)'">
+        <div class="flex items-center gap-3">
+          <app-status-pill [label]="jobMeta(job.status).label" [tone]="jobMeta(job.status).tone" />
+          <div class="text-xs text-text-dim">
+            {{ job.createdAt | date: 'short' }}
+            @if (job.failReason) { · <span class="text-danger">{{ job.failReason }}</span> }
+          </div>
+        </div>
+        @if (job.status === Completed && job.ratingId) {
+          <button class="btn-ghost" (click)="viewFindings(job)">View findings</button>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- findings -->
+@if (loadingFindings()) {
+  <div class="grid place-items-center py-10"><app-spinner [size]="24" /></div>
+} @else if (rating(); as r) {
+  <div class="border-t border-border pt-5">
+    <div class="mb-4 flex items-center gap-5">
+      <app-score-dial [score]="r.overallScore" [size]="120" />
+      <div class="text-sm">
+        <div><span class="text-text-dim">Vulnerability score:</span> <span class="font-mono">{{ r.vulnerabilityScore }}</span></div>
+        <div><span class="text-text-dim">Checks run:</span> <span class="font-mono">{{ r.numberOfTests }}</span></div>
+        <div><span class="text-text-dim">Coverage:</span> <span class="font-mono">{{ r.coveragePercent }}%</span></div>
+      </div>
+    </div>
+
+    @if (!reports().length) {
+      <p class="rounded-md border border-border bg-surface p-4 text-sm" style="color: var(--color-ok)">
+        No findings — nothing flagged on this scan.
+      </p>
+    } @else {
+      <div class="flex flex-col gap-2">
+        @for (rep of reports(); track rep.reportId) {
+          <div class="rounded-md border border-border bg-surface p-4">
+            <div class="mb-1 flex items-center justify-between gap-2">
+              <span class="text-sm font-medium">{{ rep.check || 'Finding' }}</span>
+              <app-severity-badge [severity]="rep.severity" />
+            </div>
+            @if (rep.summary) { <p class="text-sm text-text-dim">{{ rep.summary }}</p> }
+            @if (rep.recommendation) {
+              <p class="mt-2 text-sm"><span class="text-text-dim">Fix:</span> {{ rep.recommendation }}</p>
+            }
+            @if (rep.evidence) {
+              <p class="mt-2 font-mono text-xs text-text-dim">{{ rep.evidence }}</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
