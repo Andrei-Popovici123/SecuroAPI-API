@@ -1,0 +1,6 @@
+.tone-ok      { color: var(--color-ok);      border-color: color-mix(in srgb, var(--color-ok) 30%, transparent);      background: color-mix(in srgb, var(--color-ok) 12%, transparent); }
+.tone-warn    { color: var(--color-warn);    border-color: color-mix(in srgb, var(--color-warn) 30%, transparent);    background: color-mix(in srgb, var(--color-warn) 12%, transparent); }
+.tone-danger  { color: var(--color-danger);  border-color: color-mix(in srgb, var(--color-danger) 35%, transparent);  background: color-mix(in srgb, var(--color-danger) 14%, transparent); }
+.tone-info    { color: var(--color-info);    border-color: color-mix(in srgb, var(--color-info) 30%, transparent);    background: color-mix(in srgb, var(--color-info) 12%, transparent); }
+.tone-neutral { color: var(--color-text-dim); border-color: var(--color-border);                                      background: var(--color-surface-2); }
+.dot { background: currentColor; }

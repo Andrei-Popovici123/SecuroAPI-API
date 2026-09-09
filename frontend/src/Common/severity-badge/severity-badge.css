@@ -1,0 +1,6 @@
+/* 1 Low · 2 Medium · 3 High · 4 Critical — maps to the sev-* palette */
+.sev-1 { color: var(--color-sev-low);      border-color: color-mix(in srgb, var(--color-sev-low) 30%, transparent);      background: color-mix(in srgb, var(--color-sev-low) 12%, transparent); }
+.sev-2 { color: var(--color-sev-medium);   border-color: color-mix(in srgb, var(--color-sev-medium) 30%, transparent);   background: color-mix(in srgb, var(--color-sev-medium) 12%, transparent); }
+.sev-3 { color: var(--color-sev-high);     border-color: color-mix(in srgb, var(--color-sev-high) 35%, transparent);     background: color-mix(in srgb, var(--color-sev-high) 12%, transparent); }
+.sev-4 { color: var(--color-sev-critical); border-color: color-mix(in srgb, var(--color-sev-critical) 40%, transparent); background: color-mix(in srgb, var(--color-sev-critical) 16%, transparent); }
+.bar { background: currentColor; }

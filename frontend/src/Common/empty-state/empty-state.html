@@ -1,0 +1,8 @@
+<div class="flex flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] border border-dashed border-border px-6 py-12 text-center">
+  <p class="text-sm font-semibold text-text">{{ title() }}</p>
+  @if (message()) {
+    <p class="max-w-sm text-sm text-text-dim">{{ message() }}</p>
+  }
+  <!-- projected CTA, e.g. a "Register a target" button -->
+  <div class="mt-2"><ng-content /></div>
+</div>
