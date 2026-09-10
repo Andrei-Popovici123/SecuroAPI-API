@@ -24,7 +24,11 @@ export const routes: Routes = [
     canActivate: [approvedGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
-  // targets — order matters: 'new' before ':id' so it isn't captured as an id
+  {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
+  },
   {
     path: 'targets/new',
     canActivate: [approvedGuard],

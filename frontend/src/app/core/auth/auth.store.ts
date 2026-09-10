@@ -18,9 +18,7 @@ export class AuthStore {
     return t ? decodeJwt(t) : null;
   });
 
-  readonly isAuthenticated = computed(
-    () => !!this.claims() && !isExpired(this.claims())
-  );
+  readonly isAuthenticated = computed(() => !!this.claims() && !isExpired(this.claims()));
 
   readonly userId = computed(() => this.claims()?.sub ?? null);
   readonly email = computed(() => this._user()?.email ?? this.claims()?.email ?? null);
@@ -28,7 +26,7 @@ export class AuthStore {
 
   // Prefer the freshest source: /me profile, then the token claim.
   readonly status = computed<UserStatus | null>(
-    () => this._user()?.status ?? (this.claims()?.status as UserStatus) ?? null
+    () => this._user()?.status ?? (this.claims()?.status as UserStatus) ?? null,
   );
 
   readonly roles = computed(() => getRoles(this.claims()));

@@ -7,6 +7,7 @@ import type {
   GetRegisteredUserDTO,
   LoginUserDTO,
   RegisterUserDTO,
+  UpdateProfileDTO,
 } from '../models';
 
 
@@ -21,7 +22,7 @@ export class AuthService {
     return this.api.login(dto).pipe(
       tap((token) => this.store.setToken(token)),
       switchMap(() => this.api.me()),
-      tap((user) => this.store.setUser(user))
+      tap((user) => this.store.setUser(user)),
     );
   }
 
@@ -33,7 +34,9 @@ export class AuthService {
   refreshMe(): Observable<GetRegisteredUserDTO> {
     return this.api.me().pipe(tap((user) => this.store.setUser(user)));
   }
-
+  updateProfile(dto: UpdateProfileDTO): Observable<GetRegisteredUserDTO> {
+    return this.api.updateProfile(dto).pipe(tap((user) => this.store.setUser(user)));
+  }
   logout(): void {
     this.store.clear();
     this.router.navigate(['/login']);

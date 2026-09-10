@@ -27,7 +27,7 @@ namespace SecuroAPI_API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<GetRegisteredUserDTO>> RegisterUser(RegisterUserDTO registerUserDto)
         {
-            var result = await _userService.RegisterUserAsync(registerUserDto, RoleNames.User,UserStatus.New);
+            var result = await _userService.RegisterUserAsync(registerUserDto, RoleNames.User,UserStatus.Pending);
             return ToActionResult(result);
         }
         

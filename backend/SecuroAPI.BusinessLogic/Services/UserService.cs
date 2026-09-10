@@ -18,7 +18,6 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace SecuroAPI.BusinessLogic.Services;
 
-
 public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -31,11 +30,13 @@ public class UserService : IUserService
         .HttpContext?
         .User?
         .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? String.Empty;
-    
+
     public bool IsAdministrator => _httpContextAccessor?.HttpContext?
         .User?.IsInRole(RoleNames.Administrator) ?? false;
 
-    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor, SignInManager<ApplicationUser> signInManager, ILogger<UserService> logger)
+    public UserService(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions,
+        IHttpContextAccessor httpContextAccessor, SignInManager<ApplicationUser> signInManager,
+        ILogger<UserService> logger)
     {
         _userManager = userManager;
         _jwtOptions = jwtOptions;
@@ -45,8 +46,8 @@ public class UserService : IUserService
     }
 
 
-
-    public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role,UserStatus status)
+    public async Task<Result<GetRegisteredUserDTO>> RegisterUserAsync(RegisterUserDTO registerUserDto, string role,
+        UserStatus status)
     {
         var user = new ApplicationUser
         {
@@ -66,10 +67,10 @@ public class UserService : IUserService
             return Result<GetRegisteredUserDTO>.BadRequest(errors);
         }
 
-        var roleResult =await _userManager.AddToRoleAsync(user, role);
+        var roleResult = await _userManager.AddToRoleAsync(user, role);
         if (!roleResult.Succeeded)
         {
-            await _userManager.DeleteAsync(user); 
+            await _userManager.DeleteAsync(user);
             return Result<GetRegisteredUserDTO>.Failure(
                 new Error(ErrorCodes.Failure, "Registration failed."));
         }
@@ -105,12 +106,12 @@ public class UserService : IUserService
 
         if (user.Status == UserStatus.Banned)
             return Result<string>.Failure(new Error(ErrorCodes.Forbidden, "Account suspended."));
-        
+
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
         // token Issuing
         var token = await GenerateToken(user);
-        _logger.LogWarning("User {UserId} has successfully logged in from {IP}", 
+        _logger.LogWarning("User {UserId} has successfully logged in from {IP}",
             loginUserDto.Email, _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
         return Result<string>.Success(token);
     }
@@ -157,6 +158,7 @@ public class UserService : IUserService
         });
         return Result<IEnumerable<GetRegisteredUserDTO>>.Success(usersDto);
     }
+
     private async Task<string> GenerateToken(ApplicationUser user)
     {
         //basic user claims

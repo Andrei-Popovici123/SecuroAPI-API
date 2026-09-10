@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type {
   GetRegisteredUserDTO,
+  UpdateProfileDTO,
   LoginUserDTO,
   RegisterUserDTO,
 } from '../models';
@@ -23,6 +24,9 @@ export class AuthApi {
     return this.http.post(`${this.base}/login`, dto, { responseType: 'text' });
   }
 
+  updateProfile(dto: UpdateProfileDTO): Observable<GetRegisteredUserDTO> {
+    return this.http.put<GetRegisteredUserDTO>(`${this.base}/me`, dto);
+  }
   me(): Observable<GetRegisteredUserDTO> {
     return this.http.get<GetRegisteredUserDTO>(`${this.base}/me`);
   }

@@ -1,0 +1,7 @@
+.chevron { color: var(--color-text-dim); transition: transform 180ms ease; }
+.chevron.open { transform: rotate(180deg); }
+.dropdown { animation: dropIn 150ms ease; }
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}

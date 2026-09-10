@@ -14,6 +14,13 @@ export interface LoginUserDTO {
   email: string;
   password: string;
 }
+
+export interface UpdateProfileDTO {
+  firstName: string;
+  lastName: string;
+  companyName: string;
+}
+
 export interface GetRegisteredUserDTO {
   id?: string;
   email?: string;

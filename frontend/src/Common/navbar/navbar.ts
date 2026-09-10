@@ -18,7 +18,8 @@ export class Navbar {
 
   readonly statusMeta = computed(() => userStatusMeta(this.store.status() ?? undefined));
 
-  logout(): void {
-    this.auth.logout();
-  }
+  readonly initials = computed(() => {
+    const parts = (this.store.name() ?? '').trim().split(/\s+/);
+    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || 'U';
+  });
 }

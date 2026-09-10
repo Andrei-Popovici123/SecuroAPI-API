@@ -49,11 +49,9 @@ export class ScansPanel implements OnInit {
   readonly rating = signal<RatingDto | null>(null);
   readonly reports = signal<ScoreReportDto[]>([]);
   readonly loadingFindings = signal(false);
-  readonly selectedJobId = signal<string | null>(null);
+  readonly expandedJobId = signal<string | null>(null);
 
-  readonly canScan = computed(
-    () => this.registry().status === 'Approved' && !this.running()
-  );
+  readonly canScan = computed(() => this.registry().status === 'Approved' && !this.running());
 
   readonly jobMeta = jobStatusMeta;
 
@@ -65,15 +63,13 @@ export class ScansPanel implements OnInit {
     this.loading.set(true);
     this.testJob.allByApiId(this.registry().apiid).subscribe({
       next: (jobs) => {
-        const sorted = [...jobs].sort(
-          (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)
-        );
+        const sorted = [...jobs].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
         this.jobs.set(sorted);
         this.loading.set(false);
         if (resume) {
           // a scan already in flight (e.g. page reload mid-scan) → resume polling
           const active = sorted.find(
-            (j) => j.status === JobStatus.Queued || j.status === JobStatus.Running
+            (j) => j.status === JobStatus.Queued || j.status === JobStatus.Running,
           );
           if (active) {
             this.running.set(true);
@@ -108,7 +104,7 @@ export class ScansPanel implements OnInit {
         switchMap(() => this.testJob.getById(jobId)),
         // emit the terminal value too, then complete
         takeWhile((job) => !isTerminal(job.status), true),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (job) => {
@@ -116,6 +112,7 @@ export class ScansPanel implements OnInit {
           if (isTerminal(job.status)) {
             this.running.set(false);
             if (job.status === JobStatus.Completed && job.ratingId) {
+              this.expandedJobId.set(job.jobId);
               this.viewFindings(job);
             }
           }
@@ -135,9 +132,17 @@ export class ScansPanel implements OnInit {
     this.jobs.set(list);
   }
 
+  toggle(job: TestJobDto): void {
+    if (this.expandedJobId() === job.jobId) {
+      this.expandedJobId.set(null);
+      return;
+    }
+    this.expandedJobId.set(job.jobId);
+    if (job.ratingId) this.viewFindings(job);
+  }
+
   viewFindings(job: TestJobDto): void {
     if (!job.ratingId) return;
-    this.selectedJobId.set(job.jobId);
     this.loadingFindings.set(true);
     this.error.set('');
     forkJoin({
@@ -146,9 +151,7 @@ export class ScansPanel implements OnInit {
     }).subscribe({
       next: ({ rating, reports }) => {
         this.rating.set(rating);
-        this.reports.set(
-          [...reports].sort((a, b) => b.severity - a.severity)
-        );
+        this.reports.set([...reports].sort((a, b) => b.severity - a.severity));
         this.loadingFindings.set(false);
       },
       error: (err) => {

@@ -16,18 +16,17 @@
 
   <!-- user block -->
   @if (store.isAuthenticated()) {
-    <div class="flex items-center gap-3">
-      <div class="hidden text-right sm:block">
-        <div class="text-sm leading-tight">{{ store.name() }}</div>
-        <div class="font-mono text-[11px] leading-tight text-text-dim">{{ store.email() }}</div>
-      </div>
+
+    <a routerLink="/profile" routerLinkActive="border-info"
+       class="flex items-center gap-3 rounded-md border border-border py-1 pl-1 pr-2 transition-colors hover:border-info">
+    <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 text-xs font-semibold">
+      {{ initials() }}
+    </span>
+      <span class="hidden text-right sm:block">
+      <span class="block text-sm leading-tight">{{ store.name() }}</span>
+      <span class="block font-mono text-[11px] leading-tight text-text-dim">{{ store.email() }}</span>
+    </span>
       <app-status-pill [label]="statusMeta().label" [tone]="statusMeta().tone" />
-      <button
-        (click)="logout()"
-        class="rounded-md border border-border px-3 py-1.5 text-sm text-text-dim transition-colors hover:border-danger hover:text-danger"
-      >
-        Sign out
-      </button>
-    </div>
+    </a>
   }
 </header>
