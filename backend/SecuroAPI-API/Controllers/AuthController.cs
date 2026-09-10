@@ -44,5 +44,11 @@ namespace SecuroAPI_API.Controllers
         [HttpGet("me")]
         public async Task<ActionResult<GetRegisteredUserDTO>> Me()
             => ToActionResult(await _userService.GetByIdAsync(_userService.UserId));
+        
+        [Authorize]
+        [HttpPut("me")]
+        public async Task<ActionResult<GetRegisteredUserDTO>> UpdateMe(
+            [FromBody] UpdateProfileDTO dto)
+            => ToActionResult(await _userService.UpdateProfileAsync(dto));
     }
 }

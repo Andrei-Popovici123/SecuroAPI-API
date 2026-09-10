@@ -12,11 +12,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && !isLogin) {
+      if (err.status === 401 && !isLogin && auth.isAuthenticated()) {
         auth.clear();
-        router.navigate(['/login'], {
-          queryParams: { returnUrl: router.url },
-        });
+        router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+      } else if (err.status === 401 && !isLogin && !auth.isAuthenticated()) {
+        // no valid token at all → straightforward redirect
+        router.navigate(['/login']);
       }
       return throwError(() => err);
     })

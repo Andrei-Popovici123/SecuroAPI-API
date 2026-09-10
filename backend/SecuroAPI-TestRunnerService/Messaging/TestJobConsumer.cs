@@ -17,8 +17,8 @@ public class TestJobConsumer
     private readonly TestResultPublisher _publisher;
     private IChannel? _channel;
     private const int MaxConcurrent = 3;
-    private const int ScanTimeoutInMinutes = 1;
-    private readonly SemaphoreSlim _slots = new(MaxConcurrent, MaxConcurrent);
+    private const int ScanTimeoutInMinutes = 5;
+    private readonly SemaphoreSlim _slots = new(3, MaxConcurrent);
 
     public TestJobConsumer(RabbitMqConnection connection, ILogger<TestJobConsumer> logger,
         TestResultPublisher publisher, IContainerRunner containerRunner)
@@ -31,7 +31,10 @@ public class TestJobConsumer
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _channel = await _connection.CreateChannelAsync(cancellationToken);
+        _channel = await _connection.CreateChannelAsync(cancellationToken,    new CreateChannelOptions(
+            publisherConfirmationsEnabled: false,
+            publisherConfirmationTrackingEnabled: false,
+            consumerDispatchConcurrency: MaxConcurrent));
 
         await _channel.QueueDeclareAsync("test.jobs", durable: true, exclusive: false, autoDelete: false,
             arguments: null, cancellationToken: cancellationToken);
@@ -45,6 +48,7 @@ public class TestJobConsumer
 
     private async Task OnMessageAsync(object sender, BasicDeliverEventArgs ea)
     {
+        
         var json = Encoding.UTF8.GetString(ea.Body.Span);
 
         try
@@ -66,6 +70,9 @@ public class TestJobConsumer
                 throw new JsonException("Null TestJobMessage");
             
             jobId = job.JobId;
+            
+            _logger.LogInformation("HANDLER ENTER {JobId} at {Time}, slots left {Slots}",
+                jobId, DateTime.UtcNow.ToString("HH:mm:ss.fff"), _slots.CurrentCount);
             
             _logger.LogInformation("Received job {JobId} for {APIID} -> {TargetUrl}",
                 job.JobId, job.APIID, job.TargetUrl);

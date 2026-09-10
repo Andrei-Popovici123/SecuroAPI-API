@@ -1,0 +1,15 @@
+﻿.home-card {
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+.home-card:hover {
+  border-color: color-mix(in srgb, var(--color-info) 55%, transparent);
+  transform: translateY(-2px);
+}
+.arrow {
+  color: var(--color-text-dim);
+  transition: transform 150ms ease, color 150ms ease;
+}
+.home-card:hover .arrow {
+  color: var(--color-info);
+  transform: translateX(3px);
+}

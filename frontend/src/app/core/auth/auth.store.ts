@@ -22,7 +22,11 @@ export class AuthStore {
 
   readonly userId = computed(() => this.claims()?.sub ?? null);
   readonly email = computed(() => this._user()?.email ?? this.claims()?.email ?? null);
-  readonly name = computed(() => this.claims()?.name ?? null);
+  readonly name = computed(() => {
+    const u = this._user();
+    if (u?.firstName || u?.lastName) return `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim();
+    return this.claims()?.name ?? null;
+  });
 
   // Prefer the freshest source: /me profile, then the token claim.
   readonly status = computed<UserStatus | null>(

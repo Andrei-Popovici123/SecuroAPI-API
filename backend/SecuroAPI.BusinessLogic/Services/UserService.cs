@@ -158,6 +158,35 @@ public class UserService : IUserService
         });
         return Result<IEnumerable<GetRegisteredUserDTO>>.Success(usersDto);
     }
+    
+    public async Task<Result<GetRegisteredUserDTO>> UpdateProfileAsync(UpdateProfileDTO dto)
+    {
+        var user = await _userManager.FindByIdAsync(UserId);
+        if (user is null)
+            return Result<GetRegisteredUserDTO>.NotFound(
+                new Error(ErrorCodes.NotFound, "User not found."));
+
+        user.FirstName = dto.FirstName.Trim();
+        user.LastName = dto.LastName.Trim();
+        user.CompanyName = dto.CompanyName?.Trim() ?? string.Empty;
+        user.LastModifiedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return Result<GetRegisteredUserDTO>.Failure(
+                new Error(ErrorCodes.Failure,
+                    string.Join("; ", result.Errors.Select(e => e.Description))));
+
+        return Result<GetRegisteredUserDTO>.Success(new GetRegisteredUserDTO
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            CompanyName = user.CompanyName,
+            Status = user.Status.ToString(),
+        });
+    }
 
     private async Task<string> GenerateToken(ApplicationUser user)
     {
@@ -189,7 +218,7 @@ public class UserService : IUserService
             expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(_jwtOptions.Value.DurationInMinutes)),
             signingCredentials: credentials
         );
-
+        
         //return token value
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

@@ -5,17 +5,25 @@
   <!-- tabs -->
   <div class="mb-5 flex gap-1 border-b border-border">
     <button class="tab" [class.active]="tab() === 'users'" (click)="tab.set('users')">
-      Users @if (users().length) { <span class="count">{{ users().length }}</span> }
+      Users @if (users().length) {
+      <span class="count">{{ users().length }}</span>
+    }
     </button>
     <button class="tab" [class.active]="tab() === 'apis'" (click)="tab.set('apis')">
-      Targets @if (apis().length) { <span class="count">{{ apis().length }}</span> }
+      Targets @if (apis().length) {
+      <span class="count">{{ apis().length }}</span>
+    }
     </button>
   </div>
 
-  @if (error()) { <p class="mb-4 text-sm text-danger">{{ error() }}</p> }
+  @if (error()) {
+    <p class="mb-4 text-sm text-danger">{{ error() }}</p>
+  }
 
   @if (loading()) {
-    <div class="grid place-items-center py-16"><app-spinner [size]="28" /></div>
+    <div class="grid place-items-center py-16">
+      <app-spinner [size]="28" />
+    </div>
   } @else {
     @switch (tab()) {
       @case ('users') {
@@ -31,11 +39,15 @@
                     <app-status-pill [label]="userMeta(u.status).label" [tone]="userMeta(u.status).tone" />
                   </div>
                   <div class="mt-0.5 font-mono text-xs text-text-dim">{{ u.email }}</div>
-                  @if (u.companyName) { <div class="text-xs text-text-dim">{{ u.companyName }}</div> }
+                  @if (u.companyName) {
+                    <div class="text-xs text-text-dim">{{ u.companyName }}</div>
+                  }
                 </div>
                 <div class="flex shrink-0 gap-2">
                   <button class="btn-primary" (click)="approveUser(u)" [disabled]="busy()[u.id!]">Approve</button>
-                  <button class="btn-ghost !border-danger/40 !text-danger" (click)="rejectUser(u)" [disabled]="busy()[u.id!]">Reject</button>
+                  <button class="btn-ghost !border-danger/40 !text-danger" (click)="rejectUser(u)"
+                          [disabled]="busy()[u.id!]">Reject
+                  </button>
                 </div>
               </div>
             }
@@ -58,14 +70,18 @@
                     @if (a.verifiedAt) {
                       <span style="color: var(--color-ok)">domain verified {{ a.verifiedAt | date: 'short' }}</span>
                     } @else {
-                      <span class="text-warn">awaiting DNS verification — can't approve yet</span>
+                      <span class="text-warn">not DNS-verified — approving will override</span>
                     }
                   </div>
                 </div>
                 <div class="flex shrink-0 gap-2">
-                  <button class="btn-primary" (click)="approveApi(a)" [disabled]="busy()[a.apiid] || !a.verifiedAt"
-                          [title]="!a.verifiedAt ? 'Target must be domain-verified first' : ''">Approve</button>
-                  <button class="btn-ghost !border-danger/40 !text-danger" (click)="rejectApi(a)" [disabled]="busy()[a.apiid]">Reject</button>
+                  <button class="btn-primary" (click)="approveApi(a)" [disabled]="busy()[a.apiid]"
+                          [title]="!a.verifiedAt ? 'No DNS proof — approval will mark it verified' : ''">
+                    Approve
+                  </button>
+                  <button class="btn-ghost !border-danger/40 !text-danger" (click)="rejectApi(a)"
+                          [disabled]="busy()[a.apiid]">Reject
+                  </button>
                 </div>
               </div>
             }

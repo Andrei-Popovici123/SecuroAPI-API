@@ -20,6 +20,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/pending/pending').then((m) => m.Pending),
   },
   {
+    path: 'apis',
+    canActivate: [approvedGuard],
+    loadComponent: () => import('./features/apis/apis').then((m) => m.Apis),
+  },
+  {
     path: 'dashboard',
     canActivate: [approvedGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
@@ -45,6 +50,16 @@ export const routes: Routes = [
     path: 'admin',
     canActivate: [adminGuard],
     loadComponent: () => import('./features/admin/admin').then((m) => m.Admin),
+  },
+  {
+    path: 'scans',
+    canActivate: [approvedGuard],
+    loadComponent: () => import('./features/scans/scans').then((m) => m.Scans),
+  },
+  {
+    path: 'monitoring',
+    canActivate: [approvedGuard],
+    loadComponent: () => import('./features/monitoring/monitoring').then((m) => m.Monitoring),
   },
   { path: '**', redirectTo: '' },
 ];

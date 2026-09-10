@@ -16,4 +16,5 @@ public interface IUserService
     Task<Result<IEnumerable<GetRegisteredUserDTO>>> GetAllUsersAsync();
 
     Task<Result<string>> LoginUserAsync(LoginUserDTO loginUserDto);
+    Task<Result<GetRegisteredUserDTO>> UpdateProfileAsync(UpdateProfileDTO dto);
 }

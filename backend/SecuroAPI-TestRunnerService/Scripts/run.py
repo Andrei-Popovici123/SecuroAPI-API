@@ -2,6 +2,7 @@ import sys
 import json
 import argparse
 import requests
+import time
 from datetime import datetime, timezone
 import os
 
@@ -47,8 +48,8 @@ def run_passive(ctx,enabled):
 def scan(target, enabled):
     started = datetime.now(timezone.utc).isoformat()
     session = requests.Session()
-
-    # passive phase — one root GET feeds every passive check
+    time.sleep(20)
+# passive phase — one root GET feeds every passive check
     try:
         ctx = ScanContext.create(target)
     except Exception as e:

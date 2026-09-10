@@ -53,17 +53,19 @@ export class TargetDetail implements OnInit {
 
   ngOnInit(): void {
     this.id.set(this.route.snapshot.paramMap.get('id') ?? '');
-    this.load();
+    const wanted = this.route.snapshot.queryParamMap.get('tab') as Tab | null;
+    this.load(wanted);
   }
 
-  load(): void {
+  load(preferredTab: Tab | null = null): void {
     this.loading.set(true);
     this.error.set('');
     this.api.getById(this.id()).subscribe({
       next: (r) => {
         this.registry.set(r);
         this.loading.set(false);
-        if (r.verifiedAt) this.tab.set('config');
+        if (preferredTab) this.tab.set(preferredTab);
+        else if (r.verifiedAt) this.tab.set('config');
       },
       error: (err) => {
         this.error.set(extractErrorMessage(err));

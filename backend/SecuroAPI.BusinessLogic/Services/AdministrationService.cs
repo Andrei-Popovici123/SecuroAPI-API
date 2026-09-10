@@ -58,7 +58,7 @@ public class AdministrationService : IAdministrationService
     public async Task<Result<IEnumerable<APIRegistryDTO>>> GetAllUnapprovedAPIs()
     {
         var registries = await _apiRegistryRepository
-            .GetAllAsync(r => r.Status == APIStatus.Pending);
+            .GetAllAsync(r => r.Status == APIStatus.Pending || r.Status == APIStatus.Inactive);
         var mappedRegistries = registries.Select(r => new APIRegistryDTO()
         {
             APIID = r.APIID,
@@ -75,84 +75,79 @@ public class AdministrationService : IAdministrationService
 
     public async Task<Result> ApproveUser(string id)
     {
-    
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return Result.Failure();
-            }
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return Result.Failure();
+        }
 
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                return Result.NotFound(new Error(ErrorCodes.NotFound, $"User with ID '{id}' does not exist"));
-            }
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"User with ID '{id}' does not exist"));
+        }
 
-            user.Status = UserStatus.Approved;
-            user.LastModifiedAt = DateTime.UtcNow;
-            await _userManager.UpdateAsync(user);
-            await _userManager.UpdateSecurityStampAsync(user);
-            return Result.Success();
+        user.Status = UserStatus.Approved;
+        user.LastModifiedAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+        await _userManager.UpdateSecurityStampAsync(user);
+        return Result.Success();
     }
 
     public async Task<Result> RejectUser(string id)
     {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                return Result.Failure();
-            }
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return Result.Failure();
+        }
 
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
-            {
-                return Result.NotFound(new Error(ErrorCodes.NotFound, $"User with ID '{id}' does not exist"));
-            }
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"User with ID '{id}' does not exist"));
+        }
 
-            user.Status = UserStatus.Banned;
-            user.LastModifiedAt = DateTime.UtcNow;
+        user.Status = UserStatus.Banned;
+        user.LastModifiedAt = DateTime.UtcNow;
 
-             await _userManager.UpdateAsync(user);
-             await _userManager.UpdateSecurityStampAsync(user);
+        await _userManager.UpdateAsync(user);
+        await _userManager.UpdateSecurityStampAsync(user);
 
-            return Result.Success();
+        return Result.Success();
     }
 
     public async Task<Result> ApproveAPI(Guid id)
     {
-            var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
-            if (apiRegistry == null)
-            {
-                return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
-            }
-            if (apiRegistry.VerifiedAt is null)
-                return Result.Failure(new Error(ErrorCodes.BadRequest, "Target ownership has not been verified."));
-            if (apiRegistry.VerifiedAt is null)
-                return Result.Failure(new Error(ErrorCodes.BadRequest,
-                    "Target ownership has not been verified."));
-            
-            apiRegistry.Status = APIStatus.Approved;
-            apiRegistry.LastModifiedAt = DateTime.UtcNow;
+        var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
+        if (apiRegistry == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
+        }
 
-            await _apiRegistryRepository.UpdateAsync(apiRegistry);
+        // if (apiRegistry.VerifiedAt is null)
+        //     return Result.Failure(new Error(ErrorCodes.BadRequest, "Target ownership has not been verified."));
 
-            return Result.Success();
-        
+        apiRegistry.VerifiedAt ??= DateTime.UtcNow;
+        apiRegistry.Status = APIStatus.Approved;
+        apiRegistry.LastModifiedAt = DateTime.UtcNow;
+
+        await _apiRegistryRepository.UpdateAsync(apiRegistry);
+
+        return Result.Success();
     }
 
     public async Task<Result> RejectAPI(Guid id)
     {
+        var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
+        if (apiRegistry == null)
+        {
+            return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
+        }
 
-            var apiRegistry = await _apiRegistryRepository.GetByIdAsync(id);
-            if (apiRegistry == null)
-            {
-                return Result.NotFound(new Error(ErrorCodes.NotFound, $"API with ID '{id}' does not exist"));
-            }
+        apiRegistry.Status = APIStatus.Rejected;
+        apiRegistry.LastModifiedAt = DateTime.UtcNow;
 
-            apiRegistry.Status = APIStatus.Inactive;
-            apiRegistry.LastModifiedAt = DateTime.UtcNow;
+        await _apiRegistryRepository.UpdateAsync(apiRegistry);
 
-            await _apiRegistryRepository.UpdateAsync(apiRegistry);
-
-            return Result.Success();
-
+        return Result.Success();
     }
 }

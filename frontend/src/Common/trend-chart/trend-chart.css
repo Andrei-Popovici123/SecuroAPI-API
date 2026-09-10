@@ -1,0 +1,5 @@
+.axis {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+:host { display: block; }

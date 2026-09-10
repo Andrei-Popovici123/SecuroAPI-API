@@ -1,0 +1,31 @@
+@if (!hasData()) {
+  <div class="grid place-items-center text-xs text-text-dim" [style.height.px]="height()">
+    No data yet
+  </div>
+} @else {
+  <svg [attr.viewBox]="viewBox()" class="w-full" [style.height.px]="height()" preserveAspectRatio="none">
+    <!-- y gridlines + labels -->
+    @for (t of yTicks(); track t.y) {
+      <line [attr.x1]="plotLeft" [attr.x2]="plotRight()" [attr.y1]="t.y" [attr.y2]="t.y"
+            stroke="var(--color-border)" stroke-width="1" />
+      <text [attr.x]="plotLeft - 5" [attr.y]="t.y + 3" text-anchor="end"
+            class="axis" fill="var(--color-text-dim)">{{ t.label }}</text>
+    }
+
+    <!-- x labels -->
+    @for (t of xTicks(); track t.x) {
+      <text [attr.x]="t.x" [attr.y]="plotBottom() + 13" text-anchor="middle"
+            class="axis" fill="var(--color-text-dim)">{{ t.label }}</text>
+    }
+
+    <!-- the line -->
+    <path [attr.d]="path()" fill="none" [attr.stroke]="color()"
+          stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+          vector-effect="non-scaling-stroke" />
+
+    <!-- points -->
+    @for (d of dots(); track $index) {
+      <circle [attr.cx]="d.cx" [attr.cy]="d.cy" r="2.5" [attr.fill]="color()" />
+    }
+  </svg>
+}

@@ -1,0 +1,6 @@
+.row { min-height: 76px; }               /* taller list items */
+.stat { display: flex; flex-direction: column; align-items: flex-end; }
+.stat .lbl { font-size: 0.7rem; color: var(--color-text-dim); }
+.stat .val { font-family: var(--font-mono); font-size: 0.95rem; }
+.arrow { color: var(--color-text-dim); transition: transform 150ms ease, color 150ms ease; }
+.row:hover .arrow { color: var(--color-info); transform: translateX(3px); }

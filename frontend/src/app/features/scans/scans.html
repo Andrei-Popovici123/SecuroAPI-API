@@ -1,0 +1,45 @@
+<div class="mx-auto max-w-5xl">
+  <h1 class="mb-1 text-xl font-semibold">Scans</h1>
+  <p class="mb-5 text-sm text-text-dim">Your 50 most recent scans across all targets.</p>
+
+  @if (loading()) {
+    <div class="grid place-items-center py-16"><app-spinner [size]="28" /></div>
+  } @else if (error()) {
+    <div class="card p-6 text-sm text-danger">{{ error() }}</div>
+  } @else if (!rows().length) {
+    <p class="py-10 text-center text-sm text-text-dim">No scans yet.</p>
+  } @else {
+    <div class="flex flex-col gap-2">
+      @for (r of rows(); track r.job.jobId) {
+        <button type="button" (click)="open(r)"
+                class="row card flex w-full items-center gap-4 p-4 text-left transition-colors hover:border-info/60">
+          <!-- target + status -->
+          <div class="min-w-0 flex-1">
+            <div class="truncate font-mono text-sm">{{ r.host }}</div>
+            <div class="mt-1 flex items-center gap-2">
+              <app-status-pill [label]="jobMeta(r.job.status).label" [tone]="jobMeta(r.job.status).tone" />
+              <span class="text-xs text-text-dim">{{ r.job.createdAt | date: 'short' }}</span>
+            </div>
+          </div>
+          <!-- metrics, all on one line -->
+          @if (r.rating; as rt) {
+            <div class="hidden shrink-0 gap-6 text-sm sm:flex">
+              <div class="stat"><span class="lbl">Score</span><span class="val">{{ rt.overallScore }}</span></div>
+              <div class="stat"><span class="lbl">Vuln</span><span class="val">{{ rt.vulnerabilityScore }}</span></div>
+              <div class="stat"><span class="lbl">Coverage</span><span class="val">{{ rt.coveragePercent }}%</span></div>
+              <div class="stat"><span class="lbl">Tests</span><span class="val">{{ rt.numberOfTests }}</span></div>
+              <div class="stat"><span class="lbl">Findings</span><span class="val">{{ r.findings }}</span></div>
+            </div>
+          } @else {
+            <span class="shrink-0 text-xs text-text-dim">
+              {{ r.job.failReason || (r.job.status === 4 ? 'Failed' : 'No results') }}
+            </span>
+          }
+          <svg class="arrow shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      }
+    </div>
+  }
+</div>

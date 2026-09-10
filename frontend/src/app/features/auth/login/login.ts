@@ -32,7 +32,7 @@ export class Login {
     this.auth.login({ email: this.email(), password: this.password() }).subscribe({
       next: (user) => {
         const returnUrl =
-          this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+          this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
         this.router.navigateByUrl(
           user.status === 'Approved' ? returnUrl : '/pending'
         );

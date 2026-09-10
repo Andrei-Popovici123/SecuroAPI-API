@@ -30,7 +30,7 @@ public class RabbitMqConnection : IAsyncDisposable
         }
     }
 
-    public async Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken)
+    public async Task<IChannel> CreateChannelAsync(CancellationToken cancellationToken, CreateChannelOptions? options = null)
     {
         var connection = await GetConnectionAsync(cancellationToken);
         return await connection.CreateChannelAsync(cancellationToken: cancellationToken);
