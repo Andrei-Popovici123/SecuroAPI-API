@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SecuroAPI_API.Handlers;
 using SecuroAPI_API.Messaging;
+using SecuroAPI_API.Seeder;
 using SecuroAPI.BusinessLogic.Services;
 using SecuroAPI.BusinessLogic.Services.Interfaces;
 using SecuroAPI.BusinessLogic.Services.Publisher;
@@ -172,6 +173,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SecuroAPIDbContext>();
     db.Database.Migrate();
+    await IdentitySeeder.SeedAdminAsync(scope.ServiceProvider); 
 }
 
 

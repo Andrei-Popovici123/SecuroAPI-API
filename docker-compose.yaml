@@ -41,6 +41,8 @@ services:
       JwtSettings__DurationInMinutes: "${JWT_DURATIONINMINUTES}"
       RabbitMq__Username: "${RABBITMQ_USER}"
       RabbitMq__Password: "${RABBITMQ_PASS}"
+      SeedAdmin__Email: "${SEED_ADMIN_EMAIL}"
+      SeedAdmin__Password: "${SEED_ADMIN_PASSWORD}"
     ports: ["8080:8080"]
     depends_on:
       sqlserver: { condition: service_healthy }
@@ -49,7 +51,7 @@ services:
   monitoring:
     build:
       context: ./backend
-      dockerfile: SecuroAPI.Monitoring/Dockerfile
+      dockerfile: SecuroAPI-MonitoringService/Dockerfile
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -57,7 +59,7 @@ services:
         condition: service_started
     environment:
       ConnectionStrings__SecuroAPIDbContext: "Server=sqlserver,1433;Database=SecuroAPIDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
-      Monitoring__TickSeconds=60
+      Monitoring__TickSeconds: "60"
     restart: unless-stopped
       
   socket-proxy:

@@ -9,7 +9,7 @@ ARG BUILD_CONFIGURATION=Debug
 WORKDIR /src
 COPY ["SecuroAPI-TestRunnerService/SecuroAPI-TestRunnerService.csproj", "SecuroAPI-TestRunnerService/"]
 COPY ["SecuroAPI.Contracts/SecuroAPI.Contracts.csproj", "SecuroAPI.Contracts/"]
-COPY ["SecuroAPI.Contracts/SecuroAPI.Common.csproj", "SecuroAPI.Common/"]
+COPY ["SecuroAPI.Common/SecuroAPI.Common.csproj", "SecuroAPI.Common/"]
 
 RUN dotnet restore "SecuroAPI-TestRunnerService/SecuroAPI-TestRunnerService.csproj"
 
